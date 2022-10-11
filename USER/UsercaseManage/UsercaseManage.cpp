@@ -109,31 +109,6 @@ STATUS_T usecase_dispsal::usecase_cmd_resolve(UINT16 usecase_id)
 	return ret;
 }
 
-struct Base {
-    int     bi;
-    string  bs;
-    XPACK(O(bi, bs));
-};
-
-struct XTest{
-	vector<Base>            vst;
-	XPACK(O(vst));
-};
-
-struct Example {
-    string case_time;
-    XPACK(O(case_time));
-};
-
-struct test{
-	int moment;
-    string case_step;
-    string  name;
-    XPACK(A(case_time, "case_time"));
-};
-
-
-
 /**
 * @brief 更新用例数据
 * @return
@@ -153,64 +128,39 @@ void usecase_dispsal::usecase_update(void)
 		info_temp.case_preconditions = (*it).case_preconditions	;
 		info_temp.case_time_total = (*it).case_time_total;
 
-		struct Example t ;
-	    string json= "\"vst\": [{\"bi\":1, \"bs\":\"2\"}, {\"bi\":3, \"bs\":\"4\"}]";
-
-//	    xpack::json::decode(json, t);
-//	    struct XTest vi;
-//	    Base tss;
-//	    tss.bi = 1;
-//	    tss.bs = "bob";
-//	    vi.vst.push_back(tss);
-//	    tss.bi = 2;
-//	    tss.bs = "jack";
-//	    vi.vst.push_back(tss);
-//	    string tjs = xpack::json::encode(vi);
-//	    struct XTest vvi;
-//	    xpack::json::decode(tjs, vvi);
-//	    xpack::json::decode(json, vi);     // 直接转换vector
-
-//	    struct usercase_step_json setp_json;
-//	    struct usercase_step case_step_temp;
-//	    case_step_temp.case_time = 3;
-//	    case_step_temp.actuator = "小障碍物A";
-//	    case_step_temp.act = "on";
-//	    case_step_temp.act_para = 0;
-//	    setp_json.case_step.push_back(case_step_temp);
-//
-//	    case_step_temp.case_time = 13;
-//	    case_step_temp.actuator = "小障碍物A";
-//	    case_step_temp.act = "off";
-//	    case_step_temp.act_para = 0;
-//	    setp_json.case_step.push_back(case_step_temp);
-//
-//		case_step_temp.case_time = 23;
-//		case_step_temp.actuator = "小障碍物A";
-//		case_step_temp.act = "on";
-//		case_step_temp.act_para = 0;
-//		setp_json.case_step.push_back(case_step_temp);
-//
-//		case_step_temp.case_time = 33;
-//		case_step_temp.actuator = "小障碍物A";
-//		case_step_temp.act = "off";
-//		case_step_temp.act_para = 0;
-//		setp_json.case_step.push_back(case_step_temp);
-//	    string setp_json_str = xpack::json::encode(setp_json);
-//	    struct usercase_step_json setp_json_1;
-//	    xpack::json::decode(setp_json_str, setp_json_1);
-//	    cout << "json: " << setp_json_str << endl;
 	    struct usercase_step_json setp_json;
 	    xpack::json::decode((*it).case_step, setp_json);
-
-	    for(vector<struct usercase_step>::iterator it = setp_json.case_step.begin(); it != setp_json.case_step.end(); it++)
+	    for(vector<struct usercase_step>::iterator iter = setp_json.case_step.begin(); iter != setp_json.case_step.end(); iter++)
 	    {
 			struct usercase_step step_temp;
-			step_temp.case_time = (*it).case_time;
-			step_temp.actuator = (*it).actuator;
-			step_temp.act = (*it).act;
-			step_temp.act_para = (*it).act_para;
+			step_temp.case_time = (*iter).case_time;
+			step_temp.actuator = (*iter).actuator;
+			step_temp.act = (*iter).act;
+			step_temp.act_para = (*iter).act_para;
 			info_temp.case_step.push_back(step_temp);
 	    }
+
+	    struct usercase_conf_json conf_json;
+	    xpack::json::decode((*it).test_vehicle, conf_json);
+	    for(vector<struct usecase_conf>::iterator iter = conf_json.case_conf.begin(); iter != conf_json.case_conf.end(); iter++)
+	    {
+			struct usecase_conf conf_temp;
+			conf_temp.case_type = (*iter).case_type;
+			conf_temp.vehicle_location = (*iter).vehicle_location;
+			info_temp.case_conf.push_back(conf_temp);
+	    }
+
+	    struct usercase_precondition_json condition_json;
+	    xpack::json::decode((*it).pre_inspection, condition_json);
+	    for(vector<struct usecase_precondition>::iterator iter = condition_json.case_condition.begin(); iter != condition_json.case_condition.end(); iter++)
+	    {
+	    	struct usecase_precondition condition_temp;
+	    	condition_temp.pretest_id = (*iter).pretest_id;
+	    	condition_temp.pretest_name = (*iter).pretest_name;
+	    	condition_temp.pretest_state = (*iter).pretest_state;
+			info_temp.pre_inspection.push_back(condition_temp);
+	    }
+
 		case_info.push_back(info_temp);
 	}
 }

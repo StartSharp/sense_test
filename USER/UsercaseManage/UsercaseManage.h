@@ -41,12 +41,25 @@ struct usercase_step_json{
 struct usecase_conf{
 	string case_type;										/*测试类型*/
 	string vehicle_location;								/*车辆绝对位置*/
+	XPACK(A(case_type, "test_type", vehicle_location, "vehicle_locate"),O(case_type, vehicle_location));
 };
+
+struct usercase_conf_json{
+	vector<struct usecase_conf> case_conf;
+	XPACK(A(case_conf, "test_vehicle"),O(case_conf));
+};
+
 /*用例预检状态*/
 struct usecase_precondition{
 	int pretest_id;											/*预检用例ID*/
 	string pretest_name;									/*预检项目*/
 	string pretest_state;									/*预检状态*/
+	XPACK(A(pretest_id, "pre_inspection_project_id", pretest_name, "pre_inspection_project", pretest_state, "pre_inspection_state"));
+};
+
+struct usercase_precondition_json{
+	vector<struct usecase_precondition> case_condition;
+	XPACK(A(case_condition, "pre_inspection"),O(case_condition));
 };
 
 /*用例信息表*/
