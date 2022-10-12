@@ -20,6 +20,8 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+#define ENDIAN_CHANGE
+
 #ifndef IN
 #define IN
 #endif
@@ -38,6 +40,12 @@ extern "C"
 
 #ifndef ERROR
 #define ERROR (-1)
+#endif
+
+#ifdef ENDIAN_CHANGE
+#define COMMON_AUTO_DATA_PROCESS(data, dest) 		AutoChangeEndian(&(data), sizeof((data)), &(dest));
+#else
+#define COMMON_AUTO_DATA_PROCESS(data, dest)		dest = data;
 #endif
 
 #define ALIGN(n)  __attribute__((packed, aligned(n)))

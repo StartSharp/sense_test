@@ -174,7 +174,10 @@ void SCCommType::RecvDisposal(TcpServerType* ptr, struct NetParaType* psrc, UINT
 STATUS_T SCCommType::SendPackage(UINT8* ip, UINT8* data, UINT16 size, enum SCSendDatatype type)
 {
 	STATUS_T ret = RET_UNKNOWN_ERR;
-	UINT8* pdata = new UINT8(size + sizeof(struct SCSendFrameHead) + sizeof(struct SCSendFrameTail));
+//	UINT8* pdata = new UINT8(size + sizeof(struct SCSendFrameHead) + sizeof(struct SCSendFrameTail));
+//	UINT8 pbuf[1000] = {0};
+//	UINT8* pdata = pbuf;
+	UINT8* pdata = (UINT8*)malloc(size + sizeof(struct SCSendFrameHead) + sizeof(struct SCSendFrameTail));
 	UINT8* ptr = pdata;
 	string destIP = (char*)ip;
 
@@ -205,7 +208,8 @@ STATUS_T SCCommType::SendPackage(UINT8* ip, UINT8* data, UINT16 size, enum SCSen
 
 	SendData(destIP, pdata, size + sizeof(struct SCSendFrameHead) + sizeof(struct SCSendFrameTail));
 
-	delete(pdata);
+//	delete(pdata);
+	free(pdata);
 
 	return ret;
 }

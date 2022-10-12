@@ -18,10 +18,14 @@
 #include "commontypes.h"
 #include "string"
 #include "vector"
+#include "SCCtrlerManage/SCCtrlerManage.h"
 
 #include "PLATFORM.h"
 
 using namespace std;
+
+#define PLAT_BUSY	1
+#define PLAT_FREE	0
 
 /*用例执行步骤表*/
 struct usercase_step{
@@ -80,7 +84,7 @@ struct usecase_state_type{
 	unsigned char platSta;
 	unsigned short curUseCaseID;
 	unsigned char curUseCaseType;
-	unsigned char curUseCaseName[50];
+	char curUseCaseName[50];
 	unsigned long long startTime;
 	unsigned long long endTime;
 	unsigned long long duration;//已进行时间
@@ -88,7 +92,7 @@ struct usecase_state_type{
 
 class usecase_dispsal{
 public:
-	usecase_dispsal();
+	usecase_dispsal(scctrler_manager* phandler);
 	~usecase_dispsal();
 
 	INT16 IsitACaseID(UINT16 usecase_id);
@@ -96,16 +100,18 @@ public:
 	static void* usecase_run(void* argv);
 	STATUS_T usecase_cmd_resolve(UINT16 usecase_id);
 	void usecase_update(void);
+	void usecase_emergency_stop(void);
 
-	UINT16 get_pretest_tab(UINT8* pbuf, UINT16 buf_size);
-	UINT16 get_plat_usercase_state(UINT8* pbuf, UINT16 buf_size);
-
+	INT16 get_pretest_tab(UINT8* pbuf, UINT16 buf_size);
+	INT16 get_plat_usercase_state(UINT8* pbuf, UINT16 buf_size);
 
 protected:
 	vector<struct usecase_info> case_info;		/*用例配置 从数据库中读取*/
 	mysql_op usercase_db;						/*用例数据库对象*/
 	struct usecase_state_type plat_state;		/*平台测试用例的状态*/
 	UINT8 pretest_state_tab[10];				/*平台预检状态*/
+	scctrler_manager* p_sc_manager;				/*绑定的场景控制管理器*/
+	UINT8 stop_cmd;								/*停止命令*/
 };
 
 /**

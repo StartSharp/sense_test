@@ -97,11 +97,13 @@ public:
 	~scctrler_manager();
 	UINT16 FindFBID(UINT16 id);
 	UINT16 FindActID(UINT16 id);
+	UINT16 FindActID(string id);
 	UINT16 FindAcionIndex(struct actuator_conf* ptr, string action);
 	STATUS_T AddFBData(void);
 	STATUS_T AddActData(void);
 	STATUS_T CmdSend(UINT8* ip, UINT8* data, UINT16 size, UINT16 type);
 	STATUS_T SCCtrl(UINT16 id, string action, int para);
+	STATUS_T SCCtrl(string name, string action, int para);
 	STATUS_T GetFBSample(UINT16 id, char* pbuf, UINT16 bufsize);
 	void UpdateSCOverallInfo(void);
 	void AddIP(string ip);
@@ -110,6 +112,7 @@ public:
 	INT16 GetActState(UINT8* pbuf, UINT16 datasize, UINT16* psize);
 	INT16 GetFBState(UINT8* pbuf, UINT16 datasize, UINT16* psize);
 	INT16 GetVehicleState(UINT8* pdata, UINT16 datasize);
+	STATUS_T ResetAllDevices(void);
 
 	void ActorFBCheck(void);
 
@@ -124,7 +127,7 @@ public:
 protected:
 	vector<struct feedback_type> fb_data_tab;				/*反馈类场景元素表*/
 	vector<struct actuator_type> act_data_tab;				/*控制类场景元素表*/
-	vector<pfunc> recv_dispach_func_tab;  			/*数据接收回调函数*/
+	vector<pfunc> recv_dispach_func_tab;  					/*数据接收回调函数*/
 	SCCommType tcp_server;									/*TCP连接相关参数*/
 	struct scctrler_all_info_type overall_info; 			/*总体信息*/
 	vector<string> scipTab;									/*上线场景控制器IP 中间结果*/

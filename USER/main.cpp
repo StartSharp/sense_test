@@ -40,7 +40,9 @@ int main(void)
 //	pthread_create(&tcpserver, NULL, Thread1, NULL);
 
 	scctrler_manager *p = new scctrler_manager(8550);
-	usecase_dispsal *p1 = new usecase_dispsal();
+	usecase_dispsal *p1 = new usecase_dispsal(p);
+	sleep(10);
+	p1->usecase_cmd_resolve(2);
 	while(1)
 	{
 //		if(g_button == 1)

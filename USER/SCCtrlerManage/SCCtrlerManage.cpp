@@ -17,7 +17,6 @@
 
 using namespace std;
 
-#define ENDIAN_CHANGE
 #define VEHICLE_SCENE_CTRLER_NUM    0x1234
 
 #define VECHILE_STATE_SIZE				10
@@ -288,6 +287,28 @@ UINT16 scctrler_manager::FindActID(UINT16 id)
 * @param 	id
 * @return 	返回找到的ID对应的vector下标 为找到返回0xffff
 */
+UINT16 scctrler_manager::FindActID(string name)
+{
+	UINT16 i;
+	UINT16 index = 0xFFFF;
+
+	for(i = 0; i < act_data_tab.size(); i++)
+	{
+		if(act_data_tab[i].act_conf.actuator_name == name)
+		{
+			index = i;
+			break;
+		}
+	}
+
+	return index;
+}
+
+/**
+* @brief	查找ID对应的vector下标
+* @param 	id
+* @return 	返回找到的ID对应的vector下标 为找到返回0xffff
+*/
 UINT16 scctrler_manager::FindAcionIndex(struct actuator_conf* ptr, string action)
 {
 	UINT16 i;
@@ -342,11 +363,6 @@ STATUS_T scctrler_manager::SCCtrl(UINT16 id, string action, int para)
 	UINT16 index = FindActID(id);
 	UINT16 cmdIndex = FindAcionIndex(&act_data_tab[index].act_conf, action);
 
-	/*拼装数据包*/
-	SC_AUTO_DATA_PROCESS(id, cmd.ctrlID);
-	SC_AUTO_DATA_PROCESS(act_data_tab[index].act_conf.para_ctrl_tab[cmdIndex].actuator_control_instruction_output, cmd.action);
-	SC_AUTO_DATA_PROCESS(*(UINT32*)&para, cmd.actionPara);
-
 	/*上线及工作状态验证*/
 	if((normal == act_data_tab[index].act_info.onlineState) && (normal == act_data_tab[index].act_info.workState))
 	{
@@ -354,8 +370,64 @@ STATUS_T scctrler_manager::SCCtrl(UINT16 id, string action, int para)
 		{
 			if(act_data_tab[index].act_info.related_controller_addr)
 			{
+				/*拼装数据包*/
+				SC_AUTO_DATA_PROCESS(id, cmd.ctrlID);
+				SC_AUTO_DATA_PROCESS(act_data_tab[index].act_conf.para_ctrl_tab[cmdIndex].actuator_control_instruction_output, cmd.action);
+				SC_AUTO_DATA_PROCESS(*(UINT32*)&para, cmd.actionPara);
+
 				/*数据发送*/
 				CmdSend(act_data_tab[index].act_info.related_controller_addr, (UINT8*)&cmd, sizeof(cmd), actCtrl);
+			}
+			else
+			{
+
+			}
+		}
+		else
+		{
+		}
+	}
+	else
+	{
+
+	}
+
+	return ret;
+}
+
+/**
+* @brief	场景元素控制
+* @param 	UINT16 id, 			场景元素ID
+* @param	string action, 		动作
+* @param	string para			参数
+* @return 	STATUS_T 返回是否执行成功
+*/
+STATUS_T scctrler_manager::SCCtrl(string name, string action, int para)
+{
+	STATUS_T ret = RET_UNKNOWN_ERR;
+	struct SCCtrlFrameType cmd = {0};
+
+	/*查表找到ID 对应的动作下发的数据*/
+	UINT16 index = FindActID(name);
+	UINT16 cmdIndex = FindAcionIndex(&act_data_tab[index].act_conf, action);
+
+	/*上线及工作状态验证*/
+	if((normal == act_data_tab[index].act_info.onlineState) && (normal == act_data_tab[index].act_info.workState))
+	{
+		/*动作查表验证*/
+		if(strcmp(action.c_str(), (char*)act_data_tab[index].act_info.cur_command) != 0)
+		{
+			/*IP地址验证*/
+			if(act_data_tab[index].act_info.related_controller_addr)
+			{
+				/*拼装数据包*/
+				SC_AUTO_DATA_PROCESS(act_data_tab[index].act_conf.id, cmd.ctrlID);
+				SC_AUTO_DATA_PROCESS(act_data_tab[index].act_conf.para_ctrl_tab[cmdIndex].actuator_control_instruction_output, cmd.action);
+				SC_AUTO_DATA_PROCESS(*(UINT32*)&para, cmd.actionPara);
+
+				/*数据发送*/
+				CmdSend(act_data_tab[index].act_info.related_controller_addr, (UINT8*)&cmd, sizeof(cmd), actCtrl);
+				ret = RET_NO_ERR;
 			}
 			else
 			{
@@ -842,5 +914,54 @@ void scctrler_manager::SCRecvCB(void* phandler, struct NetParaType* psrc, UINT8*
 
 	}
 
+}
+
+
+/**
+* @brief	复位所有场景元素设备
+* @return
+*/
+STATUS_T scctrler_manager::ResetAllDevices(void)
+{
+	struct SCCtrlFrameType cmd = {0};
+	STATUS_T ret = RET_UNKNOWN_ERR;
+
+	for(vector<struct actuator_type>::iterator it = act_data_tab.begin(); it != act_data_tab.end(); it++)
+	{
+		UINT16 cmdIndex = FindAcionIndex(&(*it).act_conf, (*it).act_conf.actuatot_initial_state_control);
+		/*上线及工作状态验证*/
+		if((normal == (*it).act_info.onlineState) && (normal == (*it).act_info.workState))
+		{
+			/*当前状态查表验证*/
+			if(strcmp((*it).act_conf.actuatot_initial_state_control.c_str(), (char*)(*it).act_info.cur_command) != 0)
+			{
+				/*IP地址验证*/
+				if((*it).act_info.related_controller_addr)
+				{
+					/*拼装数据包*/
+					SC_AUTO_DATA_PROCESS((*it).act_conf.id, cmd.ctrlID);
+					SC_AUTO_DATA_PROCESS((*it).act_conf.para_ctrl_tab[cmdIndex].actuator_control_instruction_output, cmd.action);
+					SC_AUTO_DATA_PROCESS((*it).act_conf.actuator_initial_state_para, cmd.actionPara);
+
+					/*数据发送*/
+					CmdSend((*it).act_info.related_controller_addr, (UINT8*)&cmd, sizeof(cmd), actCtrl);
+					ret = RET_NO_ERR;
+				}
+				else
+				{
+
+				}
+			}
+			else
+			{
+			}
+		}
+		else
+		{
+
+		}
+	}
+
+	return ret;
 }
 

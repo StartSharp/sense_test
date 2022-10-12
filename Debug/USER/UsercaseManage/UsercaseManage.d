@@ -2,6 +2,7 @@ USER/UsercaseManage/UsercaseManage.o: \
  ../USER/UsercaseManage/UsercaseManage.cpp \
  ../USER/UsercaseManage/UsercaseManage.h \
  /home/tct/git/repository/platform_core/COMMON/commontypes.h \
+ /home/tct/git/repository/platform_core/USER/SCCtrlerManage/SCCtrlerManage.h \
  /home/tct/git/repository/platform_core/PLATFORM/PLATFORM.h \
  /home/tct/git/repository/platform_core/PLATFORM/Protocol/tcp/tcpserver.h \
  /home/tct/git/repository/platform_core/PLATFORM/mysql_op/mysql_op.h \
@@ -51,9 +52,14 @@ USER/UsercaseManage/UsercaseManage.o: \
  /home/tct/git/repository/platform_core/PLATFORM/xpack/xencoder.h \
  /home/tct/git/repository/platform_core/PLATFORM/xpack/json_data.h \
  /home/tct/git/repository/platform_core/PLATFORM/xpack/xpack.h \
- /home/tct/git/repository/platform_core/PLATFORM/xpack/l1l2_expand.h
+ /home/tct/git/repository/platform_core/PLATFORM/xpack/l1l2_expand.h \
+ /home/tct/git/repository/platform_core/USER/SCCtrlerManage/comm.h \
+ /home/tct/git/repository/platform_core/PLATFORM/Protocol/tcp/tcpserver.h \
+ /home/tct/git/repository/platform_core/COMMON/EndianChange.h \
+ /home/tct/git/repository/platform_core/COMMON/commontypes.h
 ../USER/UsercaseManage/UsercaseManage.h:
 /home/tct/git/repository/platform_core/COMMON/commontypes.h:
+/home/tct/git/repository/platform_core/USER/SCCtrlerManage/SCCtrlerManage.h:
 /home/tct/git/repository/platform_core/PLATFORM/PLATFORM.h:
 /home/tct/git/repository/platform_core/PLATFORM/Protocol/tcp/tcpserver.h:
 /home/tct/git/repository/platform_core/PLATFORM/mysql_op/mysql_op.h:
@@ -104,3 +110,7 @@ USER/UsercaseManage/UsercaseManage.o: \
 /home/tct/git/repository/platform_core/PLATFORM/xpack/json_data.h:
 /home/tct/git/repository/platform_core/PLATFORM/xpack/xpack.h:
 /home/tct/git/repository/platform_core/PLATFORM/xpack/l1l2_expand.h:
+/home/tct/git/repository/platform_core/USER/SCCtrlerManage/comm.h:
+/home/tct/git/repository/platform_core/PLATFORM/Protocol/tcp/tcpserver.h:
+/home/tct/git/repository/platform_core/COMMON/EndianChange.h:
+/home/tct/git/repository/platform_core/COMMON/commontypes.h:

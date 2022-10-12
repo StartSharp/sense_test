@@ -53,7 +53,8 @@ USER/main.o: ../USER/main.cpp ../USER/USER.h \
  /home/tct/git/repository/platform_core/PLATFORM/xpack/l1l2_expand.h \
  ../USER/SCCtrlerManage/comm.h \
  /home/tct/git/repository/platform_core/PLATFORM/Protocol/tcp/tcpserver.h \
- ../USER/SCCtrlerManage/comm.h ../USER/UsercaseManage/UsercaseManage.h
+ ../USER/SCCtrlerManage/comm.h ../USER/UsercaseManage/UsercaseManage.h \
+ /home/tct/git/repository/platform_core/USER/SCCtrlerManage/SCCtrlerManage.h
 ../USER/USER.h:
 ../USER/SCCtrlerManage/SCCtrlerManage.h:
 /home/tct/git/repository/platform_core/COMMON/commontypes.h:
@@ -111,3 +112,4 @@ USER/main.o: ../USER/main.cpp ../USER/USER.h \
 /home/tct/git/repository/platform_core/PLATFORM/Protocol/tcp/tcpserver.h:
 ../USER/SCCtrlerManage/comm.h:
 ../USER/UsercaseManage/UsercaseManage.h:
+/home/tct/git/repository/platform_core/USER/SCCtrlerManage/SCCtrlerManage.h:
