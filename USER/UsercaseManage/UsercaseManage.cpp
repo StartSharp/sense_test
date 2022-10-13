@@ -62,12 +62,13 @@ long long GetSysTimeS(void)
 */
 usecase_dispsal::usecase_dispsal(scctrler_manager* phandler):p_sc_manager(phandler)
 {
+	pthread_t pid;
 	/*查用例信息表*/
 	usecase_update();
 	stop_cmd = 0;
 
 	/*启动周期检查线程*/
-	usecase_precheck();
+	pthread_create(&pid, NULL, usecase_precheck, this);
 }
 
 /**
@@ -90,15 +91,42 @@ INT16 usecase_dispsal::IsitACaseID(UINT16 usecase_id)
 
 /**
 * @brief 用例状态预检 独立线程 时间触发 周期性检查用例可用性
+* @param void* argv 用例操作句柄
 * @return 返回是否执行成功
 */
-void usecase_dispsal::usecase_precheck(void)
+void* usecase_dispsal::usecase_precheck(void* argv)
 {
+	usecase_dispsal* phandler = (usecase_dispsal*)argv;
 
-	/*检查用例定义的预检项目*/
+	while(1)
+	{
+		/*循环所有用例*/
+		for(vector<struct usecase_info>::iterator it = phandler->case_info.begin(); it != phandler->case_info.end(); it++)
+		{
+			UINT16 index = 0, line = index/8, row = index%8;
+			/*检查用例定义的预检项目*/
 
-	/*检查所有用到的场景元素是否正常*/
 
+			/*检查所有用到的场景元素是否工作正常*/
+			for(vector<struct usercase_step>::iterator act_it = (*it).case_step.begin(); act_it != (*it).case_step.end(); it++)
+			{
+				INT16 ret = phandler->p_sc_manager->ActCheck((*act_it).actuator);
+				if(0 != ret)
+				{
+					phandler->pretest_state_tab[line] = (UINT8)0u << row;
+					break;
+				}
+				else
+				{
+					phandler->pretest_state_tab[line] = (UINT8)1u << row;
+				}
+			}
+		}
+
+		sleep(1);
+	}
+
+	return NULL;
 }
 
 /**

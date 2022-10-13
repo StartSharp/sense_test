@@ -16,7 +16,13 @@
 #define VALIDATION_VALIDATION_H_
 
 #include "commontypes.h"
+using namespace std;
 
+class simple_data_type{
+	UINT16 standard;
+	UINT16 sample;
+	UINT8 result;
+};
 
 
 /**

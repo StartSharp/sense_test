@@ -96,15 +96,17 @@ public:
 	scctrler_manager(UINT16 localTCPPort);
 	~scctrler_manager();
 	UINT16 FindFBID(UINT16 id);
+	UINT16 FindFBID(string name);
 	UINT16 FindActID(UINT16 id);
-	UINT16 FindActID(string id);
+	UINT16 FindActID(string name);
 	UINT16 FindAcionIndex(struct actuator_conf* ptr, string action);
 	STATUS_T AddFBData(void);
 	STATUS_T AddActData(void);
 	STATUS_T CmdSend(UINT8* ip, UINT8* data, UINT16 size, UINT16 type);
 	STATUS_T SCCtrl(UINT16 id, string action, int para);
 	STATUS_T SCCtrl(string name, string action, int para);
-	STATUS_T GetFBSample(UINT16 id, char* pbuf, UINT16 bufsize);
+	INT16 ActCheck(string name);
+//	STATUS_T GetFBSample(UINT16 id, char* pbuf, UINT16 bufsize);
 	void UpdateSCOverallInfo(void);
 	void AddIP(string ip);
 	void DeleteIP(string ip);
@@ -113,6 +115,9 @@ public:
 	INT16 GetFBState(UINT8* pbuf, UINT16 datasize, UINT16* psize);
 	INT16 GetVehicleState(UINT8* pdata, UINT16 datasize);
 	STATUS_T ResetAllDevices(void);
+
+    template<typename TT>
+    STATUS_T GetFBSample(TT id, char* pbuf, UINT16 bufsize);
 
 	void ActorFBCheck(void);
 

@@ -20,16 +20,6 @@ using namespace std;
 #define VEHICLE_SCENE_CTRLER_NUM    0x1234
 
 #define VECHILE_STATE_SIZE				10
-#define CUR_SPEED_ID					131
-#define CUR_LOCATE_ID					132
-#define OBSTACLES_COUNT_ID				133
-#define NEAREST_OBSTACLES_TYPE_ID		134
-#define NEAREST_OBSTACLES_DISTANCE_ID	135
-#define IDENTIFIED_COUNT_ID				136
-#define IDENTIFIED_DISTANCE_ID			137
-#define SIGNAL_COUNT_ID					138
-#define SIGNAL_COLOR_ID					139
-#define NEAREST_SIGNALS_DISTANCE_ID		140
 
 #define AUTO	0
 #define MAN		1
@@ -263,6 +253,28 @@ UINT16 scctrler_manager::FindFBID(UINT16 id)
 /**
 * @brief	查找ID对应的vector下标
 * @param 	id
+* @return 	返回找到的ID
+*/
+UINT16 scctrler_manager::FindFBID(string name)
+{
+	UINT16 i;
+	UINT16 index = 0xFFFF;
+
+	for(i = 0; i < fb_data_tab.size(); i++)
+	{
+		if(fb_data_tab[i].fb_conf.target_name == name)
+		{
+			index = i;
+			break;
+		}
+	}
+
+	return index;
+}
+
+/**
+* @brief	查找ID对应的vector下标
+* @param 	id
 * @return 	返回找到的ID对应的vector下标 为找到返回0xffff
 */
 UINT16 scctrler_manager::FindActID(UINT16 id)
@@ -396,6 +408,44 @@ STATUS_T scctrler_manager::SCCtrl(UINT16 id, string action, int para)
 }
 
 /**
+* @brief	控制类场景元素检查
+* @param 	string name, 			控制类场景元素名称
+* @return 	返回监测的结果 -1 表示未配置该场景元素 0表示场景元素正常 1表示未上线 2表示工作异常
+*/
+INT16 scctrler_manager::ActCheck(string name)
+{
+	UINT16 index = FindActID(name);
+	INT16 res = -1;
+	if(0xFFFF == index)
+	{
+		for(vector<struct feedback_type>::iterator it = fb_data_tab.begin(); it != fb_data_tab.end(); it++)
+		{
+			if(normal == fb_data_tab[index].fb_info.onlineSta)
+			{
+				if(normal == fb_data_tab[index].fb_info.workSta)
+				{
+					res = 0;
+				}
+				else
+				{
+					res = 2;
+				}
+			}
+			else
+			{
+				res = 1;
+			}
+		}
+	}
+	else
+	{
+		res = -1;
+	}
+
+	return res;
+}
+
+/**
 * @brief	场景元素控制
 * @param 	UINT16 id, 			场景元素ID
 * @param	string action, 		动作
@@ -446,19 +496,15 @@ STATUS_T scctrler_manager::SCCtrl(string name, string action, int para)
 	return ret;
 }
 
-/**
-* @brief	获取反馈采样结果
-* @param 	UINT16 id, 			场景元素ID
-* @return 	STATUS_T 返回是否执行成功
-*/
-STATUS_T scctrler_manager::GetFBSample(UINT16 id, char* pbuf, UINT16 bufsize)
+template<typename TT>
+STATUS_T scctrler_manager::GetFBSample(TT id, char* pbuf, UINT16 bufsize)
 {
 	STATUS_T ret = RET_UNKNOWN_ERR;
 	UINT16 index = 0xFFFF;
 
 	if(10 <= bufsize)
 	{
-		index = FindActID(id);
+		index = FindFBID(id);
 		if(0xFFFF != index)
 		{
 			ret = RET_NO_ERR;
@@ -476,7 +522,38 @@ STATUS_T scctrler_manager::GetFBSample(UINT16 id, char* pbuf, UINT16 bufsize)
 
 	return ret;
 }
+#if 0  /*使用模板类替换*/
+/**
+* @brief	获取反馈采样结果
+* @param 	UINT16 id, 			场景元素ID
+* @return 	STATUS_T 返回是否执行成功
+*/
+STATUS_T scctrler_manager::GetFBSample(UINT16 id, char* pbuf, UINT16 bufsize)
+{
+	STATUS_T ret = RET_UNKNOWN_ERR;
+	UINT16 index = 0xFFFF;
 
+	if(10 <= bufsize)
+	{
+		index = FindFBID(id);
+		if(0xFFFF != index)
+		{
+			ret = RET_NO_ERR;
+			strcpy(pbuf, fb_data_tab[index].fb_info.sampling_value);
+		}
+		else
+		{
+			ret = RET_ID_ERR;
+		}
+	}
+	else
+	{
+		ret = RET_PARAM_ERR;
+	}
+
+	return ret;
+}
+#endif
 /**
 * @brief	删除ip信息
 * @param
@@ -529,6 +606,7 @@ void scctrler_manager::AddIP(string ip)
 
 	if(it == scipTab.end())
 	{
+		ip += ';';
 		/*加入到iptab中*/
 		scipTab.push_back(ip);
 		/*更新场景控制器数量*/
@@ -616,12 +694,22 @@ INT16 scctrler_manager::GetSCOverallInfo(UINT8* pdata, UINT16 datasize)
 {
 	INT16 len = sizeof(struct scctrler_all_info_type);
 	struct scctrler_all_info_type* ptr = (struct scctrler_all_info_type*)pdata;
+	UINT16 ip_cnt;
 
 	if(datasize < len)
 	{
-		memcpy(&overall_info, pdata, len);
+		memcpy(pdata, &overall_info, len);
 		SC_AUTO_DATA_PROCESS(ptr->online_scctrler_cnt, ptr->online_scctrler_cnt);
 		SC_AUTO_DATA_PROCESS(ptr->sensing_device_version, ptr->sensing_device_version);
+		/*需要更新IPTAB到ip数据表中 并按照分号分割*/
+		memset(ptr->ipaddr, 0, sizeof(ptr->ipaddr));
+		ip_cnt = (ptr->online_scctrler_cnt <= 10)? scipTab.size(): 10;
+
+		for(int i; i < ip_cnt; i++)
+		{
+			string ip_str = scipTab[i] + ';';
+			strcat(ptr->ipaddr, scipTab[i].c_str());
+		}
 	}
 	else
 	{
@@ -700,16 +788,18 @@ INT16 scctrler_manager::GetVehicleState(UINT8* pdata, UINT16 datasize)
 	struct VehicleInfo* ptr = (struct VehicleInfo*)pdata;
 	INT16 len = sizeof(struct VehicleInfo);
 	char temp[10];
-	UINT16 tab[VECHILE_STATE_SIZE] = {CUR_SPEED_ID,
-					CUR_LOCATE_ID,
-					OBSTACLES_COUNT_ID,
-					NEAREST_OBSTACLES_TYPE_ID,
-					NEAREST_OBSTACLES_DISTANCE_ID,
-					IDENTIFIED_COUNT_ID,
-					IDENTIFIED_DISTANCE_ID,
-					SIGNAL_COUNT_ID,
-					SIGNAL_COLOR_ID,
-					NEAREST_SIGNALS_DISTANCE_ID};
+	string tab[VECHILE_STATE_SIZE] = {
+			"列车当前速度",
+			"列车当前位置",
+			"识别的障碍物数量",
+			"最近的障碍物类型",
+			"最近的障碍物距离",
+			"识别的标识数量",
+			"最近的表示距离",
+			"信号机数量识别",
+			"最近信号机颜色",
+			"最近信号机距离",
+	};
 	int resTab[VECHILE_STATE_SIZE] = {0};
 
 	if(len <= datasize)

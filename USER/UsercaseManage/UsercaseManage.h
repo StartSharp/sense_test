@@ -96,7 +96,7 @@ public:
 	~usecase_dispsal();
 
 	INT16 IsitACaseID(UINT16 usecase_id);
-	void usecase_precheck(void);
+	static void* usecase_precheck(void* argv);
 	static void* usecase_run(void* argv);
 	STATUS_T usecase_cmd_resolve(UINT16 usecase_id);
 	void usecase_update(void);
