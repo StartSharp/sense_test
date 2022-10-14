@@ -98,7 +98,7 @@ public:
 	INT16 IsitACaseID(UINT16 usecase_id);
 	static void* usecase_precheck(void* argv);
 	static void* usecase_run(void* argv);
-	STATUS_T usecase_cmd_resolve(UINT16 usecase_id);
+	STATUS_T usecase_cmd_resolve(string usecase_id);
 	void usecase_update(void);
 	void usecase_emergency_stop(void);
 

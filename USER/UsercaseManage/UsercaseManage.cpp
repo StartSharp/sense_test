@@ -199,24 +199,24 @@ void* usecase_dispsal::usecase_run(void* argv)
 * @param UINT16 usecase_id 用例ID
 * @return 返回是否执行成功
 */
-STATUS_T usecase_dispsal::usecase_cmd_resolve(UINT16 usecase_id)
+STATUS_T usecase_dispsal::usecase_cmd_resolve(string usecase_id)
 {
 	STATUS_T ret = RET_UNKNOWN_ERR;
 	pthread_t pid;
-	UINT16 index = IsitACaseID(usecase_id);
+	UINT16 case_id = atoi(usecase_id.c_str());
+	UINT16 index = IsitACaseID(case_id);
 	if(0 <= index)
 	{
 		/*需验证用例当前可用*/
 
-		plat_state.curUseCaseID = usecase_id;
+		plat_state.curUseCaseID = case_id;
 		plat_state.platSta = PLAT_BUSY;
 		plat_state.startTime = GetSysTimeS();
 		plat_state.duration = 0;
 		plat_state.endTime = plat_state.startTime + atoi(case_info[index].case_time_total.c_str());
 		strcpy(plat_state.curUseCaseName, case_info[index].case_name.c_str());
 		pthread_create(&pid, NULL, usecase_run, this);
-//		pthread_detach(pid);
-		pthread_join(pid, NULL);
+		pthread_detach(pid);
 
 		ret = RET_NO_ERR;
 	}
