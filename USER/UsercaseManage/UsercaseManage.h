@@ -101,9 +101,9 @@ public:
 	STATUS_T usecase_case_tab_load(string case_cmd);
 	static void* usecase_case_tab_dispach(void* argv);
 
-	INT16 get_pretest_tab(UINT8* pbuf, UINT16 buf_size);
-	INT16 get_plat_usercase_state(UINT8* pbuf, UINT16 buf_size);
-	INT16 get_usecase_run_sta(char* pbuf_json, UINT16 pbuf_size);
+	INT16 get_pretest_tab(UINT8* pbuf, UINT16 buf_size, UINT16* psize);
+	INT16 get_plat_usercase_state(UINT8* pbuf, UINT16 buf_size, UINT16* psize);
+	INT16 get_usecase_run_sta(UINT8* pbuf_json, UINT16 pbuf_size, UINT16* psize);
 
 protected:
 	vector<struct usecase_info> case_info;						/*用例配置 从数据库中读取*/

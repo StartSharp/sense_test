@@ -110,10 +110,10 @@ public:
 	void UpdateSCOverallInfo(void);
 	void AddIP(string ip);
 	void DeleteIP(string ip);
-	INT16 GetSCOverallInfo(UINT8* pdata, UINT16 datasize);
+	INT16 GetSCOverallInfo(UINT8* pdata, UINT16 datasize, UINT16* psize);
 	INT16 GetActState(UINT8* pbuf, UINT16 datasize, UINT16* psize);
 	INT16 GetFBState(UINT8* pbuf, UINT16 datasize, UINT16* psize);
-	INT16 GetVehicleState(UINT8* pdata, UINT16 datasize);
+	INT16 GetVehicleState(UINT8* pdata, UINT16 datasize, UINT16* psize);
 	STATUS_T ResetAllDevices(void);
 
     template<typename TT>

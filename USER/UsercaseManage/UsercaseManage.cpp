@@ -154,7 +154,7 @@ INT16 usecase_dispsal::IsitACaseID(UINT16 usecase_id)
 void* usecase_dispsal::usecase_precheck(void* argv)
 {
 	usecase_dispsal* phandler = (usecase_dispsal*)argv;
-	UINT16 index, line = index/8, row = index%8;
+	UINT16 index = 0, line = index/8, row = index%8;
 	memset(phandler->pretest_state_tab, 0, 10);
 
 	while(1)
@@ -370,7 +370,7 @@ STATUS_T usecase_dispsal::usecase_case_tab_load(string case_cmd)
 * 		 UINT16 pbuf_size 长度
 * @return 返回是否执行成功
 */
-INT16 usecase_dispsal::get_usecase_run_sta(char* pbuf_json, UINT16 pbuf_size)
+INT16 usecase_dispsal::get_usecase_run_sta(UINT8* pbuf_json, UINT16 pbuf_size, UINT16* psize)
 {
 	struct feedback_list_json_type fb_data_list;
 	INT16 size;
@@ -386,8 +386,9 @@ INT16 usecase_dispsal::get_usecase_run_sta(char* pbuf_json, UINT16 pbuf_size)
 
 	string data_str = xpack::json::encode(fb_data_list);
 	size = data_str.size();
+	*psize = size;
 	if(pbuf_size >= data_str.size())
-		strcpy(pbuf_json, data_str.c_str());
+		strcpy((char*)pbuf_json, data_str.c_str());
 	else
 		size = -1;
 
@@ -535,10 +536,11 @@ void usecase_dispsal::usecase_emergency_stop(void)
 * 		 UINT16 buf_size	数据存放区域大小
 * @return 返回拷贝的数据长度
 */
-INT16 usecase_dispsal::get_pretest_tab(UINT8* pbuf, UINT16 buf_size)
+INT16 usecase_dispsal::get_pretest_tab(UINT8* pbuf, UINT16 buf_size, UINT16* psize)
 {
 	INT16 size = sizeof(pretest_state_tab);
 
+	*psize = size;
 	if(buf_size >= size)
 	{
 		memcpy(pbuf, pretest_state_tab, size);
@@ -557,10 +559,11 @@ INT16 usecase_dispsal::get_pretest_tab(UINT8* pbuf, UINT16 buf_size)
 * 		 UINT16 buf_size	数据存放区域大小
 * @return 返回拷贝的数据长度
 */
-INT16 usecase_dispsal::get_plat_usercase_state(UINT8* pbuf, UINT16 buf_size)
+INT16 usecase_dispsal::get_plat_usercase_state(UINT8* pbuf, UINT16 buf_size, UINT16* psize)
 {
 	struct usecase_state_type* p_usecase_state = (struct usecase_state_type*)pbuf;
 	INT16 size = sizeof(plat_state);
+	*psize = size;
 	if(buf_size >= size)
 	{
 		COMMON_AUTO_DATA_PROCESS(plat_state.platSta, p_usecase_state->platSta);

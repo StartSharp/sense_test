@@ -700,12 +700,13 @@ void scctrler_manager::ActorFBCheck(void)
 * @param	UINT16 datasize		输入数据存放地址的数据大小
 * @return 	STATUS_T 返回是否执行成功
 */
-INT16 scctrler_manager::GetSCOverallInfo(UINT8* pdata, UINT16 datasize)
+INT16 scctrler_manager::GetSCOverallInfo(UINT8* pdata, UINT16 datasize, UINT16* psize)
 {
 	INT16 len = sizeof(struct scctrler_all_info_type);
 	struct scctrler_all_info_type* ptr = (struct scctrler_all_info_type*)pdata;
 	UINT16 ip_cnt;
 
+	*psize = len;
 	if(datasize < len)
 	{
 		memcpy(pdata, &overall_info, len);
@@ -793,10 +794,11 @@ INT16 scctrler_manager::GetFBState(UINT8* pbuf, UINT16 datasize, UINT16* psize)
 * @param	UINT16 datasize		输入数据存放地址的数据大小
 * @return 	返回拷贝的数据长度
 */
-INT16 scctrler_manager::GetVehicleState(UINT8* pdata, UINT16 datasize)
+INT16 scctrler_manager::GetVehicleState(UINT8* pdata, UINT16 datasize, UINT16* psize)
 {
 	struct VehicleInfo* ptr = (struct VehicleInfo*)pdata;
 	INT16 len = sizeof(struct VehicleInfo);
+	*psize = len;
 	char temp[10];
 	string tab[VECHILE_STATE_SIZE] = {
 			"列车当前速度",

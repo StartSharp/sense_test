@@ -43,9 +43,10 @@ int main(void)
 	usecase_dispsal *p1 = new usecase_dispsal(p);
 //	sleep(10);
 	string cmd = "{\"caseIDList\":[{\"id\":2,\"run_time\":2},{\"id\":2,\"run_time\":1}]}";
-
+	sleep(2);
 	p1->usecase_case_tab_load(cmd);
 	char test[500];
+	UINT16 len;
 
 //	p1->usecase_cmd_resolve("2");
 	while(1)
@@ -59,7 +60,7 @@ int main(void)
 //	//		cout << TcpServerVec[0]->ISItAClient("172.16.224.203") << endl;
 //			p->SCCtrl(0, "off", 0);
 //		}
-		p1->get_usecase_run_sta(test, 500);
+		p1->get_usecase_run_sta((UINT8*)test, 500, &len);
 		string str_test = test;
 		cout << str_test << endl;
 		sleep(1);
