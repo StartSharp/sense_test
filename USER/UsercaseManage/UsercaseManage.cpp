@@ -20,6 +20,54 @@
 
 using namespace std;
 
+enum case_work_sta_type{
+	work_well = 0,
+	work_failed = 1,
+	work_waiting = 2,
+	work_running = 3,
+};
+
+enum case_work_info_type{
+	no_error = 0,
+	act_offline = 1,
+	pretest_failed = 2,
+	act_worksta_error = 3,
+	usr_cmd = 4,
+	unknowed_error = 5,
+};
+
+struct feedback_info_json_type{
+	UINT16 id;
+	UINT16 sta;
+	UINT16 info;
+	XPACK(O(id, sta, info));
+};
+
+struct feedback_list_json_type{
+	vector<struct feedback_info_json_type> list;
+	XPACK(O(list));
+};
+
+struct usercase_step_json{
+	vector<struct usercase_step> case_step;
+	XPACK(O(case_step));
+};
+
+struct usercase_conf_json{
+	vector<struct usecase_conf> case_conf;
+	XPACK(A(case_conf, "test_vehicle"),O(case_conf));
+};
+
+struct usercase_precondition_json{
+	vector<struct usecase_precondition> case_condition;
+	XPACK(A(case_condition, "pre_inspection"),O(case_condition));
+};
+
+struct case_id_cmd_json{
+	vector<struct usecase_tab_para> caseIDList;
+	XPACK(O(caseIDList));
+};
+
 /**
  * @brief      获取系统时间ms
  * @details
@@ -67,8 +115,17 @@ usecase_dispsal::usecase_dispsal(scctrler_manager* phandler):p_sc_manager(phandl
 	usecase_update();
 	stop_cmd = 0;
 
+	plat_state.platSta = PLAT_IDLE;
+	plat_state.curUseCaseID = 0;
+	plat_state.startTime = 0;
+	plat_state.endTime = 0;
+	plat_state.duration = 0;
+
 	/*启动周期检查线程*/
 	pthread_create(&pid, NULL, usecase_precheck, this);
+	pthread_detach(pid);
+
+	sleep(2);
 }
 
 /**
@@ -97,30 +154,36 @@ INT16 usecase_dispsal::IsitACaseID(UINT16 usecase_id)
 void* usecase_dispsal::usecase_precheck(void* argv)
 {
 	usecase_dispsal* phandler = (usecase_dispsal*)argv;
+	UINT16 index, line = index/8, row = index%8;
+	memset(phandler->pretest_state_tab, 0, 10);
 
 	while(1)
 	{
+		index = 0;
 		/*循环所有用例*/
 		for(vector<struct usecase_info>::iterator it = phandler->case_info.begin(); it != phandler->case_info.end(); it++)
 		{
-			UINT16 index = 0, line = index/8, row = index%8;
+			line = index / 8;
+			row = index % 8;
 			/*检查用例定义的预检项目*/
 
 
 			/*检查所有用到的场景元素是否工作正常*/
-			for(vector<struct usercase_step>::iterator act_it = (*it).case_step.begin(); act_it != (*it).case_step.end(); it++)
+			for(vector<struct usercase_step>::iterator act_it = (*it).case_step.begin(); act_it != (*it).case_step.end(); act_it++)
 			{
 				INT16 ret = phandler->p_sc_manager->ActCheck((*act_it).actuator);
 				if(0 != ret)
 				{
-					phandler->pretest_state_tab[line] = (UINT8)0u << row;
+					phandler->pretest_state_tab[line] &= ~((UINT8)1u << row);
 					break;
 				}
 				else
 				{
-					phandler->pretest_state_tab[line] = (UINT8)1u << row;
+					phandler->pretest_state_tab[line] |= (UINT8)1u << row;
 				}
 			}
+
+			index++;
 		}
 
 		sleep(1);
@@ -153,13 +216,28 @@ void* usecase_dispsal::usecase_run(void* argv)
 				/*控制场景元素完成指定操作*/
 				ret = para->p_sc_manager->SCCtrl((*it).actuator, (*it).act, (*it).act_para);
 				ret = RET_NO_ERR;
-				if(ret != RET_NO_ERR)
+				if(RET_NO_ERR != ret)
 				{
-					para->stop_cmd = 1;
+					para->plat_state.sta = work_failed;
+					if(RET_WORK_ERROR == ret)
+					{
+						para->plat_state.info = act_worksta_error;
+					}
+					else if(RET_NOCONN_ERR == ret)
+					{
+						para->plat_state.info = act_offline;
+					}
+					else
+					{
+						para->plat_state.info = unknowed_error;
+					}
+
+					break;
 				}
 
-
 				it++;
+				if(it == para->case_info[index].case_step.end())
+					break;
 			}
 			else
 			{
@@ -168,9 +246,14 @@ void* usecase_dispsal::usecase_run(void* argv)
 		}
 		while(1);
 
+		/*执行结构命令执行失败*/
+		if(work_failed == para->plat_state.sta)break;
+
 		/*用户设置停止命令*/
 		if(1 == para->stop_cmd)
 		{
+			para->plat_state.sta = work_failed;
+			para->plat_state.info = usr_cmd;
 			para->stop_cmd = 0;
 			cout << "user stop" <<endl;
 			break;
@@ -180,16 +263,19 @@ void* usecase_dispsal::usecase_run(void* argv)
 		para->plat_state.duration++;
 	}
 
+	if(it == para->case_info[index].case_step.end())
+	{
+		/*工作正常*/
+		para->plat_state.sta = work_well;
+		para->plat_state.info = no_error;
+	}
+
 	cout << "useccase finished" << endl;
-	para->plat_state.platSta = PLAT_FREE;
+	para->plat_state.platSta = PLAT_IDLE;
 	para->plat_state.curUseCaseID = 0;
 	para->plat_state.startTime = 0;
 	para->plat_state.endTime = 0;
 	para->plat_state.duration = 0;
-
-//	pthread_detach(pthread_self());
-//	while(1)
-//	{}
 
 	return NULL;
 }
@@ -199,33 +285,164 @@ void* usecase_dispsal::usecase_run(void* argv)
 * @param UINT16 usecase_id 用例ID
 * @return 返回是否执行成功
 */
-STATUS_T usecase_dispsal::usecase_cmd_resolve(string usecase_id)
+STATUS_T usecase_dispsal::usecase_cmd_resolve(UINT16 case_id)
 {
 	STATUS_T ret = RET_UNKNOWN_ERR;
 	pthread_t pid;
-	UINT16 case_id = atoi(usecase_id.c_str());
+//	UINT16 case_id = atoi(usecase_id.c_str());
 	UINT16 index = IsitACaseID(case_id);
-	if(0 <= index)
+	if(PLAT_IDLE == plat_state.platSta)
 	{
-		/*需验证用例当前可用*/
+		if(0 <= index)
+		{
+			/*需验证用例当前可用*/
 
-		plat_state.curUseCaseID = case_id;
-		plat_state.platSta = PLAT_BUSY;
-		plat_state.startTime = GetSysTimeS();
-		plat_state.duration = 0;
-		plat_state.endTime = plat_state.startTime + atoi(case_info[index].case_time_total.c_str());
-		strcpy(plat_state.curUseCaseName, case_info[index].case_name.c_str());
-		pthread_create(&pid, NULL, usecase_run, this);
-		pthread_detach(pid);
+			plat_state.curUseCaseID = case_id;
+			plat_state.sta = work_running;
+			plat_state.info = no_error;
+			plat_state.platSta = PLAT_BUSY;
+			plat_state.startTime = GetSysTimeS();
+			plat_state.duration = 0;
+			plat_state.endTime = plat_state.startTime + atoi(case_info[index].case_time_total.c_str());
+			strcpy(plat_state.curUseCaseName, case_info[index].case_name.c_str());
+			pthread_create(&pid, NULL, usecase_run, this);
+			pthread_detach(pid);
 
-		ret = RET_NO_ERR;
+			ret = RET_NO_ERR;
+		}
+		else
+		{
+			ret = RET_ID_ERR;
+		}
 	}
 	else
 	{
-		ret = RET_ID_ERR;
+		ret = RET_BUSY;
 	}
 
 	return ret;
+}
+
+/**
+* @brief 外部请求后装载case tab
+* @param UINT16 usecase_id 用例ID
+* @return 返回是否执行成功
+*/
+STATUS_T usecase_dispsal::usecase_case_tab_load(string case_cmd)
+{
+	STATUS_T ret = RET_UNKNOWN_ERR;
+	pthread_t pid;
+
+	/*检查平台是否在忙 且用例tab是否为空*/
+	if((PLAT_IDLE == plat_state.platSta) && (0 == case_id_cmd_tab.size()))
+	{
+		/*用例ID解析*/
+		struct case_id_cmd_json case_id_cmd;
+		xpack::json::decode(case_cmd, case_id_cmd);
+	    for(vector<struct usecase_tab_para>::iterator iter = case_id_cmd.caseIDList.begin(); iter != case_id_cmd.caseIDList.end(); iter++)
+	    {
+			/*用例ID load进入load table*/
+	    	struct usecase_tab_para cmd;
+	    	cmd.run_time = (*iter).run_time;
+	    	cmd.usecase_id = (*iter).usecase_id;
+	    	cmd.sta = work_waiting;
+	    	cmd.info = no_error;
+	    	case_id_cmd_tab.push_back(cmd);
+	    }
+
+		/*启动case_tab执行函数*/
+	    pthread_create(&pid, NULL, usecase_case_tab_dispach, this);
+	    pthread_detach(pid);
+
+	    ret = RET_NO_ERR;
+	}
+	else
+	{
+		ret = RET_BUSY;
+	}
+
+	return ret;
+}
+
+/**
+* @brief 获取用例运行信息
+* @param char* pbuf_json, 数据
+* 		 UINT16 pbuf_size 长度
+* @return 返回是否执行成功
+*/
+INT16 usecase_dispsal::get_usecase_run_sta(char* pbuf_json, UINT16 pbuf_size)
+{
+	struct feedback_list_json_type fb_data_list;
+	INT16 size;
+	vector<struct usecase_tab_para>::iterator it;
+	for(it = case_id_cmd_tab.begin(); it != case_id_cmd_tab.end(); it++)
+	{
+		struct feedback_info_json_type fb_info;
+		fb_info.id = (*it).usecase_id;
+		fb_info.sta = (*it).sta;
+		fb_info.info = (*it).info;
+		fb_data_list.list.push_back(fb_info);
+	}
+
+	string data_str = xpack::json::encode(fb_data_list);
+	size = data_str.size();
+	if(pbuf_size >= data_str.size())
+		strcpy(pbuf_json, data_str.c_str());
+	else
+		size = -1;
+
+	return size;
+}
+
+/**
+* @brief 请求外部发送的命令执行请求
+* @param UINT16 usecase_id 用例ID
+* @return 返回是否执行成功
+*/
+void* usecase_dispsal::usecase_case_tab_dispach(void* argv)
+{
+	usecase_dispsal* phandler = (usecase_dispsal*)argv;
+	UINT16 index, line, row;
+
+	/*从用例TAB中取待执行的用例*/
+	vector<struct usecase_tab_para>::iterator it;
+	for(it = phandler->case_id_cmd_tab.begin(); it != phandler->case_id_cmd_tab.end(); it++)
+	{
+		for(int i = (*it).run_time; i > 0; i--)
+		{
+			/*用例可用状态检查*/
+			index = phandler->IsitACaseID((*it).usecase_id);
+			line = index / 8;
+			row = index % 8;
+			if(((phandler->pretest_state_tab[line] >> row) & (1u)) == 1)
+			{
+				/*执行用例*/
+				phandler->usecase_cmd_resolve((*it).usecase_id);
+			}
+			else
+			{
+				phandler->plat_state.sta = work_failed;
+				phandler->plat_state.info = pretest_failed;
+			}
+
+			/*检查是否执行完毕*/
+			while(PLAT_BUSY == phandler->plat_state.platSta)
+			{
+				(*it).sta = phandler->plat_state.sta;
+				(*it).info = phandler->plat_state.info;
+				sleep(1);
+			}
+
+			(*it).sta = phandler->plat_state.sta;
+			(*it).info = phandler->plat_state.info;
+			sleep(10);/*每条用例执行完成后等待10s 再开始下一条用例*/
+		}
+	}
+
+	/*清除所有用例*/
+	phandler->case_id_cmd_tab.clear();
+
+	return NULL;
 }
 
 /**

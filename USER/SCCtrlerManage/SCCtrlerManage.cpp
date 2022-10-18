@@ -416,13 +416,13 @@ INT16 scctrler_manager::ActCheck(string name)
 {
 	UINT16 index = FindActID(name);
 	INT16 res = -1;
-	if(0xFFFF == index)
+	if(0xFFFF != index)
 	{
-		for(vector<struct feedback_type>::iterator it = fb_data_tab.begin(); it != fb_data_tab.end(); it++)
+		for(vector<struct actuator_type>::iterator it = act_data_tab.begin(); it != act_data_tab.end(); it++)
 		{
-			if(normal == fb_data_tab[index].fb_info.onlineSta)
+			if(normal == act_data_tab[index].act_info.onlineState)
 			{
-				if(normal == fb_data_tab[index].fb_info.workSta)
+				if(normal == act_data_tab[index].act_info.workState)
 				{
 					res = 0;
 				}
@@ -462,35 +462,43 @@ STATUS_T scctrler_manager::SCCtrl(string name, string action, int para)
 	UINT16 cmdIndex = FindAcionIndex(&act_data_tab[index].act_conf, action);
 
 	/*上线及工作状态验证*/
-	if((normal == act_data_tab[index].act_info.onlineState) && (normal == act_data_tab[index].act_info.workState))
+	if(normal == act_data_tab[index].act_info.onlineState)
 	{
-		/*动作查表验证*/
-		if(strcmp(action.c_str(), (char*)act_data_tab[index].act_info.cur_command) != 0)
+		if(normal == act_data_tab[index].act_info.workState)
 		{
-			/*IP地址验证*/
-			if(act_data_tab[index].act_info.related_controller_addr)
+			/*动作查表验证*/
+			if(strcmp(action.c_str(), (char*)act_data_tab[index].act_info.cur_command) != 0)
 			{
-				/*拼装数据包*/
-				SC_AUTO_DATA_PROCESS(act_data_tab[index].act_conf.id, cmd.ctrlID);
-				SC_AUTO_DATA_PROCESS(act_data_tab[index].act_conf.para_ctrl_tab[cmdIndex].actuator_control_instruction_output, cmd.action);
-				SC_AUTO_DATA_PROCESS(*(UINT32*)&para, cmd.actionPara);
+				/*IP地址验证*/
+				if(act_data_tab[index].act_info.related_controller_addr)
+				{
+					/*拼装数据包*/
+					SC_AUTO_DATA_PROCESS(act_data_tab[index].act_conf.id, cmd.ctrlID);
+					SC_AUTO_DATA_PROCESS(act_data_tab[index].act_conf.para_ctrl_tab[cmdIndex].actuator_control_instruction_output, cmd.action);
+					SC_AUTO_DATA_PROCESS(*(UINT32*)&para, cmd.actionPara);
 
-				/*数据发送*/
-				CmdSend(act_data_tab[index].act_info.related_controller_addr, (UINT8*)&cmd, sizeof(cmd), actCtrl);
-				ret = RET_NO_ERR;
+					/*数据发送*/
+					CmdSend(act_data_tab[index].act_info.related_controller_addr, (UINT8*)&cmd, sizeof(cmd), actCtrl);
+					ret = RET_NO_ERR;
+				}
+				else
+				{
+					/*IP地址正常*/
+				}
 			}
 			else
 			{
-
+				/*重复命令不下发*/
 			}
 		}
 		else
 		{
+			ret = RET_WORK_ERROR;
 		}
 	}
 	else
 	{
-
+		ret = RET_NOCONN_ERR;
 	}
 
 	return ret;
@@ -594,7 +602,9 @@ void scctrler_manager::AddIP(string ip)
 	vector<string>::iterator it;
 	for(it = scipTab.begin(); it < scipTab.end(); it++)
 	{
-		if((*it) != ip)
+		string connected_ip = (*it);
+		connected_ip.erase(connected_ip.end() - 1);
+		if(connected_ip != ip)
 		{
 			continue;
 		}
@@ -904,7 +914,7 @@ void scctrler_manager::SCMonitorCB(void* phandler, struct NetParaType* psrc, UIN
 			strcpy(ptr_fb_info->sampling_value, to_string(psampler->value).c_str());
 			pSCAddr->AddIP(psrc->ip);
 
-			/*先简单处理*/
+			/*车载场景控制器上线 先简单处理*/
 			if(140 == psampler->id)
 			{
 				pSCAddr->overall_info.sensing_device_online_sta = normal;

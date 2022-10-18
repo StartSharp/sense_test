@@ -110,6 +110,8 @@ typedef enum
     RET_MUTEX_ERR		= -12,  /* 互斥量无效 */
     RET_THREAD_ERR		= -13,  /* 线程创建失败 */
     RET_NOCONN_ERR		= -14,  /* 无网络连接 */
+	RET_BUSY			= -15,	/* 平台正忙 */
+	RET_WORK_ERROR		= -16, 	/* 工作异常 */
     RET_UNKNOWN_ERR		= -99   /* 未知错误 */
 } STATUS_T;
 

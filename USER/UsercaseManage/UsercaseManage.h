@@ -25,7 +25,16 @@
 using namespace std;
 
 #define PLAT_BUSY	1
-#define PLAT_FREE	0
+#define PLAT_IDLE	0
+
+/*用例执行参数*/
+struct usecase_tab_para{
+	UINT16 usecase_id;			/*用例ID*/
+	UINT16 run_time;			/*执行次数*/
+	UINT8 sta;					/*当前状态*/
+	UINT8 info;					/*错误枚举*/
+	XPACK(A(usecase_id, "id"),O(usecase_id, run_time));
+};
 
 /*用例执行步骤表*/
 struct usercase_step{
@@ -36,21 +45,11 @@ struct usercase_step{
 	XPACK(O(case_time, actuator, act, act_para));
 };
 
-struct usercase_step_json{
-	vector<struct usercase_step> case_step;
-	XPACK(O(case_step));
-};
-
 /*用例配置信息*/
 struct usecase_conf{
 	string case_type;										/*测试类型*/
 	string vehicle_location;								/*车辆绝对位置*/
 	XPACK(A(case_type, "test_type", vehicle_location, "vehicle_locate"),O(case_type, vehicle_location));
-};
-
-struct usercase_conf_json{
-	vector<struct usecase_conf> case_conf;
-	XPACK(A(case_conf, "test_vehicle"),O(case_conf));
 };
 
 /*用例预检状态*/
@@ -59,11 +58,6 @@ struct usecase_precondition{
 	string pretest_name;									/*预检项目*/
 	string pretest_state;									/*预检状态*/
 	XPACK(A(pretest_id, "pre_inspection_project_id", pretest_name, "pre_inspection_project", pretest_state, "pre_inspection_state"));
-};
-
-struct usercase_precondition_json{
-	vector<struct usecase_precondition> case_condition;
-	XPACK(A(case_condition, "pre_inspection"),O(case_condition));
 };
 
 /*用例信息表*/
@@ -88,6 +82,8 @@ struct usecase_state_type{
 	unsigned long long startTime;
 	unsigned long long endTime;
 	unsigned long long duration;//已进行时间
+	UINT16 sta;					/*用例执行结果*/
+	UINT16 info;				/*运行结果信息*/
 };
 
 class usecase_dispsal{
@@ -98,20 +94,25 @@ public:
 	INT16 IsitACaseID(UINT16 usecase_id);
 	static void* usecase_precheck(void* argv);
 	static void* usecase_run(void* argv);
-	STATUS_T usecase_cmd_resolve(string usecase_id);
+	STATUS_T usecase_cmd_resolve(UINT16 usecase_id);
 	void usecase_update(void);
 	void usecase_emergency_stop(void);
 
+	STATUS_T usecase_case_tab_load(string case_cmd);
+	static void* usecase_case_tab_dispach(void* argv);
+
 	INT16 get_pretest_tab(UINT8* pbuf, UINT16 buf_size);
 	INT16 get_plat_usercase_state(UINT8* pbuf, UINT16 buf_size);
+	INT16 get_usecase_run_sta(char* pbuf_json, UINT16 pbuf_size);
 
 protected:
-	vector<struct usecase_info> case_info;		/*用例配置 从数据库中读取*/
-	mysql_op usercase_db;						/*用例数据库对象*/
-	struct usecase_state_type plat_state;		/*平台测试用例的状态*/
-	UINT8 pretest_state_tab[10];				/*平台预检状态*/
-	scctrler_manager* p_sc_manager;				/*绑定的场景控制管理器*/
-	UINT8 stop_cmd;								/*停止命令*/
+	vector<struct usecase_info> case_info;						/*用例配置 从数据库中读取*/
+	mysql_op usercase_db;										/*用例数据库对象*/
+	struct usecase_state_type plat_state;						/*平台测试用例的状态*/
+	UINT8 pretest_state_tab[10];								/*平台预检状态*/
+	scctrler_manager* p_sc_manager;								/*绑定的场景控制管理器*/
+	UINT8 stop_cmd;												/*停止命令*/
+	vector<struct usecase_tab_para> case_id_cmd_tab;			/*用例执行请求池 不允许追加*/
 };
 
 /**
