@@ -112,6 +112,7 @@ typedef enum
     RET_NOCONN_ERR		= -14,  /* 无网络连接 */
 	RET_BUSY			= -15,	/* 平台正忙 */
 	RET_WORK_ERROR		= -16, 	/* 工作异常 */
+	RET_EQU_NOT_READY   = -17,  /* 设备未就绪 */
     RET_UNKNOWN_ERR		= -99   /* 未知错误 */
 } STATUS_T;
 

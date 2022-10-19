@@ -17,13 +17,15 @@
 using namespace std;
 
 /**
-* @brief 
-* @param 
-* @param 
-* @param 
-* @param 
-* @param 
-* @param 
+* @brief 	获取验证结果
+* @param
 * @return 
 */
+INT16 validation_type::get_result(UINT8* pbuf, UINT16 buf_size, UINT16* psize)
+{
+	INT16 len;
 
+
+
+	return len;
+}

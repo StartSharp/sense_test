@@ -34,6 +34,8 @@ enum case_work_info_type{
 	act_worksta_error = 3,
 	usr_cmd = 4,
 	unknowed_error = 5,
+	plat_busy = 6,
+	case_not_exist = 7,
 };
 
 struct feedback_info_json_type{
@@ -108,7 +110,7 @@ long long GetSysTimeS(void)
 * @brief 初始化用例信息数据
 * @return 
 */
-usecase_dispsal::usecase_dispsal(scctrler_manager* phandler):p_sc_manager(phandler)
+usecase_dispsal::usecase_dispsal(scctrler_manager* p_sc, validation_type* p_val):p_sc_manager(p_sc), p_validation(p_val)
 {
 	pthread_t pid;
 	/*查用例信息表*/
@@ -118,6 +120,7 @@ usecase_dispsal::usecase_dispsal(scctrler_manager* phandler):p_sc_manager(phandl
 	plat_state.platSta = PLAT_IDLE;
 	plat_state.curUseCaseID = 0;
 	plat_state.startTime = 0;
+	plat_state.startTimeMS = 0;
 	plat_state.endTime = 0;
 	plat_state.duration = 0;
 
@@ -274,6 +277,7 @@ void* usecase_dispsal::usecase_run(void* argv)
 	para->plat_state.platSta = PLAT_IDLE;
 	para->plat_state.curUseCaseID = 0;
 	para->plat_state.startTime = 0;
+	para->plat_state.startTimeMS = 0;
 	para->plat_state.endTime = 0;
 	para->plat_state.duration = 0;
 
@@ -289,6 +293,7 @@ STATUS_T usecase_dispsal::usecase_cmd_resolve(UINT16 case_id)
 {
 	STATUS_T ret = RET_UNKNOWN_ERR;
 	pthread_t pid;
+	UINT16 line, row;
 //	UINT16 case_id = atoi(usecase_id.c_str());
 	UINT16 index = IsitACaseID(case_id);
 	if(PLAT_IDLE == plat_state.platSta)
@@ -296,27 +301,55 @@ STATUS_T usecase_dispsal::usecase_cmd_resolve(UINT16 case_id)
 		if(0 <= index)
 		{
 			/*需验证用例当前可用*/
+			line = index / 8;
+			row = index % 8;
+			if(((pretest_state_tab[line] >> row) & (1u)) == 1)
+			{
+				/*初始化状态*/
+				plat_state.curUseCaseID = case_id;
+				plat_state.sta = work_running;
+				plat_state.info = no_error;
+				plat_state.platSta = PLAT_BUSY;
+				plat_state.startTime = GetSysTimeS();
+				plat_state.startTimeMS = GetSysTimeMS();
+				plat_state.duration = 0;
+				plat_state.endTime = plat_state.startTime + atoi(case_info[index].case_time_total.c_str());
+				strcpy(plat_state.curUseCaseName, case_info[index].case_name.c_str());
+				pthread_create(&pid, NULL, usecase_run, this);
+				pthread_detach(pid);
 
-			plat_state.curUseCaseID = case_id;
-			plat_state.sta = work_running;
-			plat_state.info = no_error;
-			plat_state.platSta = PLAT_BUSY;
-			plat_state.startTime = GetSysTimeS();
-			plat_state.duration = 0;
-			plat_state.endTime = plat_state.startTime + atoi(case_info[index].case_time_total.c_str());
-			strcpy(plat_state.curUseCaseName, case_info[index].case_name.c_str());
-			pthread_create(&pid, NULL, usecase_run, this);
-			pthread_detach(pid);
+				string record = "(" + to_string(plat_state.startTimeMS) + "," + to_string(plat_state.curUseCaseID)  + "," +
+						"'NULL'" + "," + "'NULL'" + "," + "'NULL'" + "," + "'NULL'" + ")";
 
-			ret = RET_NO_ERR;
+				/*记录写入数据库*/
+				usercase_db.insert_db(usercase_db.ConnectPointer, "test_history", "(test_time,case_id,case_information,test_result,test_process_data_file,log_file)", record.c_str());
+
+				/*触发数据验证模块*/
+
+
+				ret = RET_NO_ERR;
+			}
+			else
+			{
+				/*当前用例不可用*/
+				plat_state.sta = work_failed;
+				plat_state.info = pretest_failed;
+				ret = RET_EQU_NOT_READY;
+			}
 		}
 		else
 		{
+			/*当前用例不存在*/
+			plat_state.sta = work_failed;
+			plat_state.info = case_not_exist;
 			ret = RET_ID_ERR;
 		}
 	}
 	else
 	{
+		/*当前平台正忙*/
+		plat_state.sta = work_failed;
+		plat_state.info = plat_busy;
 		ret = RET_BUSY;
 	}
 

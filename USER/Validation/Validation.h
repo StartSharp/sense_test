@@ -26,15 +26,19 @@ protected:
 	UINT8 result;				/*验证结果*/
 	UINT16 sampler_id;			/*采样值匹配的ID*/
 public:
-	void validation(UINT16 type);
+
 
 	INT16 get_data(UINT8* pdata, UINT16 len);
 
 };
 
 class validation_type{
-public:
+protected:
 	UINT16 mask_switch;			/*验证结果屏蔽开关*/
+
+public:
+	void validation(void);
+	INT16 get_result(UINT8* pbuf, UINT16 buf_size, UINT16* psize);
 
 };
 

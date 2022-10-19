@@ -55,6 +55,7 @@ USER/UsercaseManage/UsercaseManage.o: \
  /home/tct/git/repository/platform_core/PLATFORM/xpack/l1l2_expand.h \
  /home/tct/git/repository/platform_core/USER/SCCtrlerManage/comm.h \
  /home/tct/git/repository/platform_core/PLATFORM/Protocol/tcp/tcpserver.h \
+ /home/tct/git/repository/platform_core/USER/Validation/Validation.h \
  /home/tct/git/repository/platform_core/COMMON/EndianChange.h \
  /home/tct/git/repository/platform_core/COMMON/commontypes.h
 ../USER/UsercaseManage/UsercaseManage.h:
@@ -112,5 +113,6 @@ USER/UsercaseManage/UsercaseManage.o: \
 /home/tct/git/repository/platform_core/PLATFORM/xpack/l1l2_expand.h:
 /home/tct/git/repository/platform_core/USER/SCCtrlerManage/comm.h:
 /home/tct/git/repository/platform_core/PLATFORM/Protocol/tcp/tcpserver.h:
+/home/tct/git/repository/platform_core/USER/Validation/Validation.h:
 /home/tct/git/repository/platform_core/COMMON/EndianChange.h:
 /home/tct/git/repository/platform_core/COMMON/commontypes.h:

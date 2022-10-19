@@ -40,9 +40,10 @@ int main(void)
 //	pthread_create(&tcpserver, NULL, Thread1, NULL);
 
 	scctrler_manager *p = new scctrler_manager(8550);
-	usecase_dispsal *p1 = new usecase_dispsal(p);
+	validation_type *p2 = new validation_type();
+	usecase_dispsal *p1 = new usecase_dispsal(p, p2);
 //	sleep(10);
-	string cmd = "{\"caseIDList\":[{\"id\":2,\"run_time\":2},{\"id\":2,\"run_time\":1}]}";
+	string cmd = "{\"caseIDList\":[{\"id\":2,\"run_time\":1},{\"id\":2,\"run_time\":1}]}";
 	sleep(2);
 	p1->usecase_case_tab_load(cmd);
 	char test[500];

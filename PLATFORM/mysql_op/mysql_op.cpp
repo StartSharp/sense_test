@@ -371,8 +371,8 @@ void mysql_op::query_db(MYSQL *Pointer,char str_que[]){
 
 }
 
-void mysql_op::insert_db(MYSQL *Pointer,char str_ins[],char ins_var[],char ins_data[]){
-	char Exec[100]={"INSERT INTO "};
+void mysql_op::insert_db(MYSQL *Pointer,char str_ins[],char ins_var[],const char ins_data[]){
+	char Exec[500]={"INSERT INTO "};
 	strcat(Exec,str_ins);
 	strcat(Exec," ");
 	strcat(Exec,ins_var);//要不要加空格？？

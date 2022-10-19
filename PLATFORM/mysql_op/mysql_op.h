@@ -33,7 +33,7 @@ class mysql_op//mysql_op
 
 		void mysql_conn();
 		void query_db(MYSQL *Pointer,char str_que[]);
-		void insert_db(MYSQL *Pointer,char str_ins_table[],char ins_var[],char ins_data[]);
+		void insert_db(MYSQL *Pointer,char str_ins_table[],char ins_var[],const char ins_data[]);
 		void update_db(MYSQL *Pointer,char str_upd[],char upd_var[],char upd_condition[]);
 		void delete_db(MYSQL *Pointer,char str_del[],char del_condition[]);
 

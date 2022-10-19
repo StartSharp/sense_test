@@ -19,6 +19,7 @@
 #include "string"
 #include "vector"
 #include "SCCtrlerManage/SCCtrlerManage.h"
+#include "Validation/Validation.h"
 
 #include "PLATFORM.h"
 
@@ -80,6 +81,7 @@ struct usecase_state_type{
 	unsigned char curUseCaseType;
 	char curUseCaseName[50];
 	unsigned long long startTime;
+	unsigned long long startTimeMS;
 	unsigned long long endTime;
 	unsigned long long duration;//已进行时间
 	UINT16 sta;					/*用例执行结果*/
@@ -88,7 +90,7 @@ struct usecase_state_type{
 
 class usecase_dispsal{
 public:
-	usecase_dispsal(scctrler_manager* phandler);
+	usecase_dispsal(scctrler_manager* p_sc, validation_type* p_val);
 	~usecase_dispsal();
 
 	INT16 IsitACaseID(UINT16 usecase_id);
@@ -111,6 +113,7 @@ protected:
 	struct usecase_state_type plat_state;						/*平台测试用例的状态*/
 	UINT8 pretest_state_tab[10];								/*平台预检状态*/
 	scctrler_manager* p_sc_manager;								/*绑定的场景控制管理器*/
+	validation_type* p_validation;								/*绑定的验证平台管理器*/
 	UINT8 stop_cmd;												/*停止命令*/
 	vector<struct usecase_tab_para> case_id_cmd_tab;			/*用例执行请求池 不允许追加*/
 };
