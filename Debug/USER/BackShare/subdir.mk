@@ -4,13 +4,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../USER/BackShare/BackShare.cpp 
+../USER/BackShare/BackShare.cpp \
+../USER/BackShare/comm_back.cpp 
 
 CPP_DEPS += \
-./USER/BackShare/BackShare.d 
+./USER/BackShare/BackShare.d \
+./USER/BackShare/comm_back.d 
 
 OBJS += \
-./USER/BackShare/BackShare.o 
+./USER/BackShare/BackShare.o \
+./USER/BackShare/comm_back.o 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -25,7 +28,7 @@ USER/BackShare/%.o: ../USER/BackShare/%.cpp USER/BackShare/subdir.mk
 clean: clean-USER-2f-BackShare
 
 clean-USER-2f-BackShare:
-	-$(RM) ./USER/BackShare/BackShare.d ./USER/BackShare/BackShare.o
+	-$(RM) ./USER/BackShare/BackShare.d ./USER/BackShare/BackShare.o ./USER/BackShare/comm_back.d ./USER/BackShare/comm_back.o
 
 .PHONY: clean-USER-2f-BackShare
 

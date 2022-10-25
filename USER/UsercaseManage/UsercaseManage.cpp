@@ -120,9 +120,10 @@ usecase_dispsal::usecase_dispsal(scctrler_manager* p_sc, validation_type* p_val)
 	plat_state.platSta = PLAT_IDLE;
 	plat_state.curUseCaseID = 0;
 	plat_state.startTime = 0;
-	plat_state.startTimeMS = 0;
+	plat_state.others.startTimeMS = 0;
 	plat_state.endTime = 0;
 	plat_state.duration = 0;
+	memset(plat_state.curUseCaseName, '\0', sizeof(plat_state.curUseCaseName));
 
 	/*启动周期检查线程*/
 	pthread_create(&pid, NULL, usecase_precheck, this);
@@ -221,18 +222,18 @@ void* usecase_dispsal::usecase_run(void* argv)
 				ret = RET_NO_ERR;
 				if(RET_NO_ERR != ret)
 				{
-					para->plat_state.sta = work_failed;
+					para->plat_state.others.sta = work_failed;
 					if(RET_WORK_ERROR == ret)
 					{
-						para->plat_state.info = act_worksta_error;
+						para->plat_state.others.info = act_worksta_error;
 					}
 					else if(RET_NOCONN_ERR == ret)
 					{
-						para->plat_state.info = act_offline;
+						para->plat_state.others.info = act_offline;
 					}
 					else
 					{
-						para->plat_state.info = unknowed_error;
+						para->plat_state.others.info = unknowed_error;
 					}
 
 					break;
@@ -250,13 +251,13 @@ void* usecase_dispsal::usecase_run(void* argv)
 		while(1);
 
 		/*执行结构命令执行失败*/
-		if(work_failed == para->plat_state.sta)break;
+		if(work_failed == para->plat_state.others.sta)break;
 
 		/*用户设置停止命令*/
 		if(1 == para->stop_cmd)
 		{
-			para->plat_state.sta = work_failed;
-			para->plat_state.info = usr_cmd;
+			para->plat_state.others.sta = work_failed;
+			para->plat_state.others.info = usr_cmd;
 			para->stop_cmd = 0;
 			cout << "user stop" <<endl;
 			break;
@@ -269,17 +270,18 @@ void* usecase_dispsal::usecase_run(void* argv)
 	if(it == para->case_info[index].case_step.end())
 	{
 		/*工作正常*/
-		para->plat_state.sta = work_well;
-		para->plat_state.info = no_error;
+		para->plat_state.others.sta = work_well;
+		para->plat_state.others.info = no_error;
 	}
 
 	cout << "useccase finished" << endl;
 	para->plat_state.platSta = PLAT_IDLE;
 	para->plat_state.curUseCaseID = 0;
 	para->plat_state.startTime = 0;
-	para->plat_state.startTimeMS = 0;
+	para->plat_state.others.startTimeMS = 0;
 	para->plat_state.endTime = 0;
 	para->plat_state.duration = 0;
+	memset(para->plat_state.curUseCaseName, '\0', sizeof(para->plat_state.curUseCaseName));
 
 	return NULL;
 }
@@ -307,23 +309,23 @@ STATUS_T usecase_dispsal::usecase_cmd_resolve(UINT16 case_id)
 			{
 				/*初始化状态*/
 				plat_state.curUseCaseID = case_id;
-				plat_state.sta = work_running;
-				plat_state.info = no_error;
+				plat_state.others.sta = work_running;
+				plat_state.others.info = no_error;
 				plat_state.platSta = PLAT_BUSY;
 				plat_state.startTime = GetSysTimeS();
-				plat_state.startTimeMS = GetSysTimeMS();
+				plat_state.others.startTimeMS = GetSysTimeMS();
 				plat_state.duration = 0;
 				plat_state.endTime = plat_state.startTime + atoi(case_info[index].case_time_total.c_str());
 				strcpy(plat_state.curUseCaseName, case_info[index].case_name.c_str());
 				pthread_create(&pid, NULL, usecase_run, this);
 				pthread_detach(pid);
 
-				string record = "(" + to_string(plat_state.startTimeMS) + "," + to_string(plat_state.curUseCaseID)  + "," +
+				string record = "(" + to_string(plat_state.others.startTimeMS) + "," + to_string(plat_state.curUseCaseID)  + "," +
 						"'NULL'" + "," + "'NULL'" + "," + "'NULL'" + "," + "'NULL'" + ")";
 
 				/*记录写入数据库*/
 				usercase_db.insert_db(usercase_db.ConnectPointer, "test_history", "(test_time,case_id,case_information,test_result,test_process_data_file,log_file)", record.c_str());
-
+//				usercase_db.insert_db(usercase_db.ConnectPointer,"test_history","(test_time,case_id,case_information,test_result,test_process_data_file,log_file)","(100000000000000,5224,'NUll','Null','NUll','NUll')");
 				/*触发数据验证模块*/
 
 
@@ -332,24 +334,24 @@ STATUS_T usecase_dispsal::usecase_cmd_resolve(UINT16 case_id)
 			else
 			{
 				/*当前用例不可用*/
-				plat_state.sta = work_failed;
-				plat_state.info = pretest_failed;
+				plat_state.others.sta = work_failed;
+				plat_state.others.info = pretest_failed;
 				ret = RET_EQU_NOT_READY;
 			}
 		}
 		else
 		{
 			/*当前用例不存在*/
-			plat_state.sta = work_failed;
-			plat_state.info = case_not_exist;
+			plat_state.others.sta = work_failed;
+			plat_state.others.info = case_not_exist;
 			ret = RET_ID_ERR;
 		}
 	}
 	else
 	{
 		/*当前平台正忙*/
-		plat_state.sta = work_failed;
-		plat_state.info = plat_busy;
+		plat_state.others.sta = work_failed;
+		plat_state.others.info = plat_busy;
 		ret = RET_BUSY;
 	}
 
@@ -455,20 +457,20 @@ void* usecase_dispsal::usecase_case_tab_dispach(void* argv)
 			}
 			else
 			{
-				phandler->plat_state.sta = work_failed;
-				phandler->plat_state.info = pretest_failed;
+				phandler->plat_state.others.sta = work_failed;
+				phandler->plat_state.others.info = pretest_failed;
 			}
 
 			/*检查是否执行完毕*/
 			while(PLAT_BUSY == phandler->plat_state.platSta)
 			{
-				(*it).sta = phandler->plat_state.sta;
-				(*it).info = phandler->plat_state.info;
+				(*it).sta = phandler->plat_state.others.sta;
+				(*it).info = phandler->plat_state.others.info;
 				sleep(1);
 			}
 
-			(*it).sta = phandler->plat_state.sta;
-			(*it).info = phandler->plat_state.info;
+			(*it).sta = phandler->plat_state.others.sta;
+			(*it).info = phandler->plat_state.others.info;
 			sleep(10);/*每条用例执行完成后等待10s 再开始下一条用例*/
 		}
 	}
@@ -595,7 +597,7 @@ INT16 usecase_dispsal::get_pretest_tab(UINT8* pbuf, UINT16 buf_size, UINT16* psi
 INT16 usecase_dispsal::get_plat_usercase_state(UINT8* pbuf, UINT16 buf_size, UINT16* psize)
 {
 	struct usecase_state_type* p_usecase_state = (struct usecase_state_type*)pbuf;
-	INT16 size = sizeof(plat_state);
+	INT16 size = sizeof(plat_state) - sizeof(p_usecase_state->others);
 	*psize = size;
 	if(buf_size >= size)
 	{

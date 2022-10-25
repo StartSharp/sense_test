@@ -23,7 +23,7 @@ using namespace std;
 */
 INT16 validation_type::get_result(UINT8* pbuf, UINT16 buf_size, UINT16* psize)
 {
-	INT16 len;
+	INT16 len = 0;
 
 
 

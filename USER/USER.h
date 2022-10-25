@@ -11,6 +11,8 @@
 #include "SCCtrlerManage/SCCtrlerManage.h"
 #include "SCCtrlerManage/comm.h"
 #include "UsercaseManage/UsercaseManage.h"
+#include "BackShare/BackShare.h"
+#include "PlatformManage/PlatformManage.h"
 
 
 

@@ -19,8 +19,6 @@ using namespace std;
 
 #define VEHICLE_SCENE_CTRLER_NUM    0x1234
 
-#define VECHILE_STATE_SIZE				10
-
 #define AUTO	0
 #define MAN		1
 
@@ -707,7 +705,7 @@ INT16 scctrler_manager::GetSCOverallInfo(UINT8* pdata, UINT16 datasize, UINT16* 
 	UINT16 ip_cnt;
 
 	*psize = len;
-	if(datasize < len)
+	if(datasize >= len)
 	{
 		memcpy(pdata, &overall_info, len);
 		SC_AUTO_DATA_PROCESS(ptr->online_scctrler_cnt, ptr->online_scctrler_cnt);
@@ -800,23 +798,12 @@ INT16 scctrler_manager::GetVehicleState(UINT8* pdata, UINT16 datasize, UINT16* p
 	INT16 len = sizeof(struct VehicleInfo);
 	*psize = len;
 	char temp[10];
-	string tab[VECHILE_STATE_SIZE] = {
-			"列车当前速度",
-			"列车当前位置",
-			"识别的障碍物数量",
-			"最近的障碍物类型",
-			"最近的障碍物距离",
-			"识别的标识数量",
-			"最近的表示距离",
-			"信号机数量识别",
-			"最近信号机颜色",
-			"最近信号机距离",
-	};
+
 	int resTab[VECHILE_STATE_SIZE] = {0};
 
 	if(len <= datasize)
 	{
-		for(UINT16 i; i < VECHILE_STATE_SIZE; i++)
+		for(UINT16 i = 0; i < VECHILE_STATE_SIZE; i++)
 		{
 			GetFBSample(tab[i], temp, 10);
 			resTab[i] = atoi(temp);
@@ -878,22 +865,22 @@ void scctrler_manager::SCMonitorCB(void* phandler, struct NetParaType* psrc, UIN
 	/*解析控制类场景元素数据*/
 	for(i = 0; i < ctrlSize; i++)
 	{
-		SC_AUTO_DATA_PROCESS(pctrler->id, pctrler->id);
-		index = pSCAddr->FindActID(pctrler->id);
+		SC_AUTO_DATA_PROCESS(pctrler[i].id, pctrler[i].id);
+		index = pSCAddr->FindActID(pctrler[i].id);
 		if(0xFFFF != index)
 		{
 			struct actuator_information* ptr_act_info = &pSCAddr->act_data_tab[index].act_info;
 			/*设置设备状态为上线*/
 			ptr_act_info->onlineState = normal;
 			/*工作状态更新*/
-			SC_AUTO_DATA_PROCESS(pctrler->workState, ptr_act_info->workState);
+			SC_AUTO_DATA_PROCESS(pctrler[i].workState, ptr_act_info->workState);
 			/*IP更新*/
 			strcpy((char*)ptr_act_info->related_controller_addr, psrc->ip.c_str());
 			pSCAddr->AddIP(psrc->ip);
 		}
 		else
 		{
-			cout << "SC Message: not found that CTRLER id : " << pctrler->id << endl;
+			cout << "SC Message: not found that CTRLER id : " << pctrler[i].id << endl;
 		}
 	}
 
@@ -912,8 +899,8 @@ void scctrler_manager::SCMonitorCB(void* phandler, struct NetParaType* psrc, UIN
 			/*IP更新*/
 			strcpy((char*)ptr_fb_info->related_controller_addr, psrc->ip.c_str());
 			/*采样值更新*/
-			SC_AUTO_DATA_PROCESS(psampler->value, psampler->value);
-			strcpy(ptr_fb_info->sampling_value, to_string(psampler->value).c_str());
+			SC_AUTO_DATA_PROCESS(psampler[i].value, psampler[i].value);
+			strcpy(ptr_fb_info->sampling_value, to_string(psampler[i].value).c_str());
 			pSCAddr->AddIP(psrc->ip);
 
 			/*车载场景控制器上线 先简单处理*/
@@ -921,12 +908,12 @@ void scctrler_manager::SCMonitorCB(void* phandler, struct NetParaType* psrc, UIN
 			{
 				pSCAddr->overall_info.sensing_device_online_sta = normal;
 				pSCAddr->overall_info.sensing_device_work_sta = normal;
-				pSCAddr->overall_info.sensing_device_version = (UINT16)psampler->value;
+				pSCAddr->overall_info.sensing_device_version = (UINT16)psampler[i].value;
 			}
 		}
 		else
 		{
-			cout << "SC Message: not found that FB id : " << psampler->id <<  endl;
+			cout << "SC Message: not found that FB id : " << psampler[i].id <<  endl;
 		}
 	}
 }

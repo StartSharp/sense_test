@@ -231,16 +231,18 @@ STATUS_T TcpServerType::ListenClient(void)
     socklen_t clilen = 16;
     struct sockaddr_in servaddr,cliaddr;
     struct NetParaType netpara;
+    int on = 1;
 
     memset((UINT8*)&netpara, 0, sizeof(netpara));
     listenfd = socket(AF_INET,SOCK_STREAM,0);
-
+	//避免上次结束程序时，端口未被及时释放的问题
+	setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
     bzero(&servaddr,sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(localPort);
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    result = bind(listenfd,(struct sockaddr *)&servaddr,sizeof(servaddr));
+    result = bind(listenfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
     if(-1 == result)
     {
         perror("bind");

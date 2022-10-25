@@ -55,7 +55,12 @@ USER/main.o: ../USER/main.cpp ../USER/USER.h \
  /home/tct/git/repository/platform_core/PLATFORM/Protocol/tcp/tcpserver.h \
  ../USER/SCCtrlerManage/comm.h ../USER/UsercaseManage/UsercaseManage.h \
  /home/tct/git/repository/platform_core/USER/SCCtrlerManage/SCCtrlerManage.h \
- /home/tct/git/repository/platform_core/USER/Validation/Validation.h
+ /home/tct/git/repository/platform_core/USER/Validation/Validation.h \
+ ../USER/BackShare/BackShare.h ../USER/BackShare/comm_back.h \
+ /home/tct/git/repository/platform_core/PLATFORM/xpack/json.h \
+ /home/tct/git/repository/platform_core/USER/USER.h \
+ /home/tct/git/repository/platform_core/USER/PlatformManage/PlatformManage.h \
+ ../USER/PlatformManage/PlatformManage.h
 ../USER/USER.h:
 ../USER/SCCtrlerManage/SCCtrlerManage.h:
 /home/tct/git/repository/platform_core/COMMON/commontypes.h:
@@ -115,3 +120,9 @@ USER/main.o: ../USER/main.cpp ../USER/USER.h \
 ../USER/UsercaseManage/UsercaseManage.h:
 /home/tct/git/repository/platform_core/USER/SCCtrlerManage/SCCtrlerManage.h:
 /home/tct/git/repository/platform_core/USER/Validation/Validation.h:
+../USER/BackShare/BackShare.h:
+../USER/BackShare/comm_back.h:
+/home/tct/git/repository/platform_core/PLATFORM/xpack/json.h:
+/home/tct/git/repository/platform_core/USER/USER.h:
+/home/tct/git/repository/platform_core/USER/PlatformManage/PlatformManage.h:
+../USER/PlatformManage/PlatformManage.h:

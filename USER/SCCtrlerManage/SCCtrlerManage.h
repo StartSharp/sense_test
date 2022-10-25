@@ -24,6 +24,8 @@
 
 using namespace std;
 
+#define VECHILE_STATE_SIZE				10
+
 typedef void (*pfunc)(void* phandler, struct NetParaType* psrc, UINT8* pdata, UINT16 len);
 
 struct actuator_information{
@@ -83,7 +85,7 @@ struct actuator_type{
 };
 
 struct scctrler_all_info_type{
-	int online_scctrler_cnt;				/*上线的场景控制器数量*/
+	UINT16 online_scctrler_cnt;				/*上线的场景控制器数量*/
 	char ipaddr[160];						/*IP地址存储地址 用分号隔开*/
 	UINT8 vehicle_scctrler_online_sta;		/*车载场景控制器是否上线*/
 	UINT8 sensing_device_online_sta;		/*感知设备是否上线*/
@@ -138,6 +140,18 @@ protected:
 	vector<string> scipTab;									/*上线场景控制器IP 中间结果*/
 	string vehicle_sc_ip;									/*车载场景控制器IP*/
 	mysql_op scdb;
+	string tab[VECHILE_STATE_SIZE] = {
+			"列车当前速度",
+			"列车当前位置",
+			"识别的障碍物数量",
+			"最近的障碍物类型",
+			"最近的障碍物距离",
+			"识别的标识数量",
+			"最近的表示距离",
+			"信号机数量识别",
+			"最近信号机颜色",
+			"最近信号机距离",
+	};
 
 };
 

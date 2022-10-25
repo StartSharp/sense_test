@@ -81,12 +81,14 @@ struct usecase_state_type{
 	unsigned char curUseCaseType;
 	char curUseCaseName[50];
 	unsigned long long startTime;
-	unsigned long long startTimeMS;
 	unsigned long long endTime;
 	unsigned long long duration;//已进行时间
-	UINT16 sta;					/*用例执行结果*/
-	UINT16 info;				/*运行结果信息*/
-};
+	struct other_info{
+		unsigned long long startTimeMS;
+		UINT16 sta;					/*用例执行结果*/
+		UINT16 info;				/*运行结果信息*/
+	}others;
+}ALIGN(1);
 
 class usecase_dispsal{
 public:
