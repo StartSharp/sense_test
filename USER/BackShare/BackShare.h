@@ -79,14 +79,21 @@ protected:
 	UINT8* p_temp;//临时数据指针=new UINT8[BUFSIZ]
 	UINT8* p_temp1;//临时数据指针=new UINT8[BUFSIZ]
 
+	struct orderpara{
+		string orderPara;
+		XPACK(O(orderPara));
+	};
+
 	int size_all;//
 	UINT8* case_act_state;//=new UINT8 [300]
 
-	UINT32 global_len;
-	UINT32 act_len;
-	UINT16 act_count;
-	UINT32 feed_len;
-	UINT16 feed_count;
+	UINT32 global_len = 0;
+//	UINT32 act_len;
+//	UINT16 act_count;
+//	UINT32 feed_len;
+//	UINT16 feed_count;
+
+
 
 
 };

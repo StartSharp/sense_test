@@ -459,44 +459,53 @@ STATUS_T scctrler_manager::SCCtrl(string name, string action, int para)
 	UINT16 index = FindActID(name);
 	UINT16 cmdIndex = FindAcionIndex(&act_data_tab[index].act_conf, action);
 
-	/*上线及工作状态验证*/
-	if(normal == act_data_tab[index].act_info.onlineState)
+	if(0xffff != cmdIndex)
 	{
-		if(normal == act_data_tab[index].act_info.workState)
+		/*上线及工作状态验证*/
+		if(normal == act_data_tab[index].act_info.onlineState)
 		{
-			/*动作查表验证*/
-			if(strcmp(action.c_str(), (char*)act_data_tab[index].act_info.cur_command) != 0)
+			if(normal == act_data_tab[index].act_info.workState)
 			{
-				/*IP地址验证*/
-				if(act_data_tab[index].act_info.related_controller_addr)
+				/*动作查表验证*/
+				if(strcmp(action.c_str(), (char*)act_data_tab[index].act_info.cur_command) != 0)
 				{
-					/*拼装数据包*/
-					SC_AUTO_DATA_PROCESS(act_data_tab[index].act_conf.id, cmd.ctrlID);
-					SC_AUTO_DATA_PROCESS(act_data_tab[index].act_conf.para_ctrl_tab[cmdIndex].actuator_control_instruction_output, cmd.action);
-					SC_AUTO_DATA_PROCESS(*(UINT32*)&para, cmd.actionPara);
+					/*IP地址验证*/
+					if(act_data_tab[index].act_info.related_controller_addr)
+					{
+						/*拼装数据包*/
+						SC_AUTO_DATA_PROCESS(act_data_tab[index].act_conf.id, cmd.ctrlID);
+						SC_AUTO_DATA_PROCESS(act_data_tab[index].act_conf.para_ctrl_tab[cmdIndex].actuator_control_instruction_output, cmd.action);
+						SC_AUTO_DATA_PROCESS(*(UINT32*)&para, cmd.actionPara);
 
-					/*数据发送*/
-					CmdSend(act_data_tab[index].act_info.related_controller_addr, (UINT8*)&cmd, sizeof(cmd), actCtrl);
-					ret = RET_NO_ERR;
+						/*数据发送*/
+						CmdSend(act_data_tab[index].act_info.related_controller_addr, (UINT8*)&cmd, sizeof(cmd), actCtrl);
+						ret = RET_NO_ERR;
+					}
+					else
+					{
+						/*IP地址异常*/
+						ret = RET_DATA_ERR;
+					}
 				}
 				else
 				{
-					/*IP地址正常*/
+					/*重复命令不下发*/
+					ret = RET_NO_ERR;
 				}
 			}
 			else
 			{
-				/*重复命令不下发*/
+				ret = RET_WORK_ERROR;
 			}
 		}
 		else
 		{
-			ret = RET_WORK_ERROR;
+			ret = RET_NOCONN_ERR;
 		}
 	}
 	else
 	{
-		ret = RET_NOCONN_ERR;
+		ret = RET_PARAM_ERR;
 	}
 
 	return ret;
@@ -746,6 +755,7 @@ INT16 scctrler_manager::GetActState(UINT8* pbuf, UINT16 datasize, UINT16* psize)
 		 {
 			 memcpy(ptr, &(*it).act_info, sizeof(struct actuator_information));
 			 SC_AUTO_DATA_PROCESS(ptr->id, ptr->id);
+			 ptr++;
 		 }
 	 }
 	 else
@@ -775,6 +785,7 @@ INT16 scctrler_manager::GetFBState(UINT8* pbuf, UINT16 datasize, UINT16* psize)
 		 {
 			 memcpy(ptr, &(*it).fb_info, sizeof(struct feedback_information));
 			 SC_AUTO_DATA_PROCESS(ptr->id, ptr->id);
+			 ptr++;
 		 }
 	 }
 	 else

@@ -26,7 +26,7 @@
 using namespace std;
 
 #define PLAT_BUSY	1
-#define PLAT_IDLE	0
+#define PLAT_IDLE	2
 
 /*用例执行参数*/
 struct usecase_tab_para{

@@ -219,7 +219,6 @@ void* usecase_dispsal::usecase_run(void* argv)
 				cout << "time "<< para->plat_state.duration <<" cmd : " <<"+" << (*it).actuator << "+" << "+" <<(*it).act << "+" <<"+"<<(*it).act_para<<"+" << endl;
 				/*控制场景元素完成指定操作*/
 				ret = para->p_sc_manager->SCCtrl((*it).actuator, (*it).act, (*it).act_para);
-				ret = RET_NO_ERR;
 				if(RET_NO_ERR != ret)
 				{
 					para->plat_state.others.sta = work_failed;

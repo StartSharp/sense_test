@@ -59,7 +59,7 @@ int main(void)
 	UINT8 buf[100] = {0};
 	UINT16 lenth = 0;
 	p->GetVehicleState(buf, 100, &lenth);
-	UINT8* test = new UINT8[300];
+	char test[500];
 	UINT16 len;
 
 //	p1->usecase_cmd_resolve("2");
@@ -74,9 +74,9 @@ int main(void)
 //	//		cout << TcpServerVec[0]->ISItAClient("172.16.224.203") << endl;
 //			p->SCCtrl(0, "off", 0);
 //		}
-		p1->get_usecase_run_sta((UINT8*)test, 3300, &len);
-//		string str_test = test;
-//		cout << str_test << endl;
+		p1->get_usecase_run_sta((UINT8*)test, 500, &len);
+		string str_test = test;
+		cout << str_test << endl;
 		sleep(1);
 	}
 

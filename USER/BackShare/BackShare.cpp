@@ -15,6 +15,7 @@
 #include <iostream>
 #include "EndianChange.h"
 #include "crc32_back.h"
+#include "stdlib.h"
 
 using namespace std;
 
@@ -206,7 +207,8 @@ void* BackShareManager::getData(void *arg)//向用例处理部分，平台运行
 										memcpy(ptr_bs->p_all+ptr_bs->global_len+10+psize_act_32-2+4,&feed_count_u_end,sizeof(feed_count_u_end));
 										memcpy(ptr_bs->p_all+ptr_bs->global_len+10+psize_act_32-2+6,ptr_bs->p_temp+ucase_len+plat_mana_info_len+sc_info_len+veh_info_len+case_state_len+(*psize_act)+run_state_num+act_count_u,psize_feed_32-2);
 										ptr_bs->size_all=ucase_len+plat_mana_info_len+sc_info_len+veh_info_len+case_state_len+run_state_num+(*psize_act)+(*psize_feed)+16;//。+run_state_num后加的
-										ptr_bs->tcp_server.SendPackage("192.168.10.1", ptr_bs->p_all, ptr_bs->size_all);//1171，写一个public接口获取IP 1199
+										ptr_bs->tcp_server.SendPackage("127.0.0.1", ptr_bs->p_all, ptr_bs->size_all);//1171，写一个public接口获取IP 1199
+										ptr_bs->tcp_server.SendPackage("172.16.217.24", ptr_bs->p_all, ptr_bs->size_all);//1171，写一个public接口获取IP 1199
 									}
 
 								}
@@ -309,24 +311,27 @@ void BackShareManager::BSRecvCB(void* phandler, struct NetParaType* psrc, UINT8*
 		UINT16 cmd_id =*(UINT16*)(pdata+10);//截取命令id
 		AUTO_CHANGE_ENDIAN(cmd_id);
 		cout<<"cmd_id="<<cmd_id<<endl;
-		if(cmd_id==1)
+
+		char cmd_para[500];
+		//string cmd_para=
+		//传给用例处理单元
+//		for(int i=0;i<20;i++)
+//		{
+//			cmd_para[i]=*(pdata+sizeof(struct BSRecvFrameHead)+2+i);
+//		}
+
+		memcpy(cmd_para,pdata+sizeof(struct BSRecvFrameHead)+2,500);
+		string cmd_para_str=cmd_para;
+		cout<<"cmd_para_str="<<cmd_para_str<<endl;
+
+		if(cmd_id==1)//用例执行
 		{
 			//ptr_back_type->case_act_count++;//用例执行次数自增，传给平台管理单元
 			pBSAddr->case_act_count++;
 			//pBSAddr->p_plat->plat_m_info.case_test_count++;//暂且先这样干，后续改
 			pBSAddr->p_plat->update_case_test_count();
-			char cmd_para[500];
-			//string cmd_para=
-			//传给用例处理单元
-	//		for(int i=0;i<20;i++)
-	//		{
-	//			cmd_para[i]=*(pdata+sizeof(struct BSRecvFrameHead)+2+i);
-	//		}
 
-			memcpy(cmd_para,pdata+sizeof(struct BSRecvFrameHead)+2,500);
-			string cmd_para_str=cmd_para;
-			cout<<"cmd_para_str="<<cmd_para_str<<endl;
-			pBSAddr->p_ucase->usecase_cmd_resolve(cmd_id);
+			//pBSAddr->p_ucase->usecase_cmd_resolve(cmd_id);
 			pBSAddr->p_ucase->usecase_case_tab_load(cmd_para_str);
 			//string cmd_para_json(&cmd_para[0],&cmd_para[strlen(cmd_para)]);
 			//case_cmd_para c_c_para;
@@ -338,8 +343,45 @@ void BackShareManager::BSRecvCB(void* phandler, struct NetParaType* psrc, UINT8*
 
 		}
 
+		if(cmd_id==2)//用例删除
+		{
+
+		}
+
+		if(cmd_id==3)//场景元素动作命令
+		{
+			BackShareManager::orderpara order_p;
+			xpack::json::decode(cmd_para_str,order_p);
+
+			UINT16 id_temp=0;
+			UINT16* id=&id_temp;
+			string action;
+			int para_temp=0;
+			int* para=&para_temp;
+
+			vector<string> vec_str;
+			stringstream ss(order_p.orderPara);
+			string str_acc;
+			while(getline(ss,str_acc,';'))
+			{
+				vec_str.push_back(str_acc);
+			}
 
 
+//			memcpy(id,vec_str[0].c_str(),vec_str[0].size());
+//			action=vec_str[1];
+//			memcpy(para,vec_str[2].c_str(),vec_str[2].size());
+			id_temp = atoi(vec_str[0].c_str());
+			action=vec_str[1];
+			para_temp = atoi(vec_str[2].c_str());
+
+			pBSAddr->p_sc->SCCtrl(id_temp, action, para_temp);
+		}
+
+		if(cmd_id==4)//用例停止
+		{
+
+		}
 
 }
 

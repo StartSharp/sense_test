@@ -23,7 +23,7 @@ public:
 	void PrintLocolPort(void);
 	STATUS_T SendPackage(string ip, UINT8* data, UINT16 size);//UINT8* ip
 	BackShareType(UINT16 localPortCfg,void (*pfunc)(void* phandler, struct NetParaType* psrc, UINT8* pdata, UINT16 len));
-	UINT32 case_act_count;
+//	UINT32 case_act_count;
 //	struct case_cmd_para{
 //		string cmd_para;
 //		XPACK(O(cmd_para));

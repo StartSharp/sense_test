@@ -189,16 +189,30 @@ STATUS_T TcpServerType::SendData(string ip, UINT8* pdata, UINT16 len)
 {
 	STATUS_T ret = RET_UNKNOWN_ERR;
 	struct NetParaType* ptr;
-	/*检查发送目标合法性*/
-	ptr = ISItAClient(ip);
-	if(NULL != ptr)
+	if(ip.size() != 0)
 	{
-		write(ptr->accfd, pdata, len);
+		/*检查发送目标合法性*/
+		ptr = ISItAClient(ip);
+		if(NULL != ptr)
+		{
+			write(ptr->accfd, pdata, len);
+			ret = RET_NO_ERR;
+		}
+		else
+		{
+			cout << "Send package to : " << ip << "is error, no that client" << endl;
+			ret = RET_ID_ERR;
+		}
 	}
 	else
 	{
-		cout << "Send package to : " << ip << "is error, no that client" << endl;
+		/*遍历所有client 发送数据*/
+		for(UINT16 i = 0; i < clientIPTab.size(); i++)
+		{
+			write(clientIPTab[i].accfd, pdata, len);
+		}
 	}
+
 
 	return ret;
 }
