@@ -35,6 +35,20 @@ public:
 		UINT32 case_test_count=0;
 	}ALIGN(1);
 
+	struct SoftVersionType{
+		UINT32 s4	:	8;
+		UINT32 s3   :	6;
+		UINT32 s2	:	10;
+		UINT32 s1	:	8;
+	};
+
+	union SoftVersionUnionType{
+		struct SoftVersionType bit;
+		UINT32 all;
+	};
+
+	union SoftVersionUnionType g_softversion = {{3,2,1,1}};
+
 
 	pthread_t t_upd_sys_run_time;
 	//pthread_t t_upd_plat_info;

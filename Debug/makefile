@@ -63,7 +63,7 @@ main-build: platform_core
 platform_core: $(OBJS) $(USER_OBJS) makefile $(OPTIONAL_TOOL_DEPS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -L"/home/tct/git/repository/platform_core/LIB" -o "platform_core" $(OBJS) $(USER_OBJS) $(LIBS) -lmysqlclient
+	g++ -L"/home/tct/git/repository/lee/sense_test/LIB" -o "platform_core" $(OBJS) $(USER_OBJS) $(LIBS) -lmysqlclient
 	@echo 'Finished building target: $@'
 	@echo ' '
 

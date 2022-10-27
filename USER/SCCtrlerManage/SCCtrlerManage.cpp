@@ -17,7 +17,7 @@
 
 using namespace std;
 
-#define VEHICLE_SCENE_CTRLER_NUM    0x1234
+#define VEHICLE_SCENE_CTRLER_NUM    0x1233
 
 #define AUTO	0
 #define MAN		1
@@ -721,11 +721,11 @@ INT16 scctrler_manager::GetSCOverallInfo(UINT8* pdata, UINT16 datasize, UINT16* 
 		SC_AUTO_DATA_PROCESS(ptr->sensing_device_version, ptr->sensing_device_version);
 		/*需要更新IPTAB到ip数据表中 并按照分号分割*/
 		memset(ptr->ipaddr, 0, sizeof(ptr->ipaddr));
-		ip_cnt = (ptr->online_scctrler_cnt <= 10)? scipTab.size(): 10;
+		ip_cnt = (overall_info.online_scctrler_cnt <= 10)? overall_info.online_scctrler_cnt: 10;
 
-		for(int i; i < ip_cnt; i++)
+
+		for(int i = 0; i < ip_cnt; i++)
 		{
-			string ip_str = scipTab[i] + ';';
 			strcat(ptr->ipaddr, scipTab[i].c_str());
 		}
 	}

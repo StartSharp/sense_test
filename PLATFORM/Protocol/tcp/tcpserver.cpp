@@ -127,6 +127,7 @@ STATUS_T TcpServerType::RecvData(void)
 	int index = this->clientIPTab.size();
 
 	pconf = &this->clientIPTab.back();
+	string cli_ip = pconf->ip;
 //	if(rsvcb ！= NULL)
 	while(1)
 	{
@@ -143,7 +144,7 @@ STATUS_T TcpServerType::RecvData(void)
 			ret = RET_NOCONN_ERR;
 			break;
 		}
-
+		pconf = ISItAClient(cli_ip);
 		if(NULL != rsvcb)
 			rsvcb(this, pconf, data, size);
 	}
